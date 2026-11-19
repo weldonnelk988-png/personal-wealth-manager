@@ -1,0 +1,2735 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Personal Wealth Manager — Site web</title>
+<style>
+:root{
+  --bg:#f6f7f9; --card:#ffffff; --border:#e5e8ee; --text:#1a2233; --muted:#64708a;
+  --accent:#4f46e5; --accent-soft:#eef2ff; --success:#059669; --danger:#dc2626; --warning:#d97706;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--text);
+  font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  font-size:clamp(13px,2.4vw,14px);line-height:1.45}
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-thumb{background:#cbd2de;border-radius:8px}
+
+/* ---------- En-tête ---------- */
+header{position:sticky;top:0;z-index:30;background:#fff;border-bottom:1px solid var(--border)}
+.header-in{max-width:1200px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px clamp(10px,3vw,20px)}
+.brand{font-weight:800;color:var(--accent);font-size:clamp(1rem,3.4vw,1.2rem);letter-spacing:-.01em;white-space:nowrap;min-width:0;flex-shrink:1;overflow:hidden;text-overflow:ellipsis}
+.brand small{display:block;font-weight:500;color:var(--muted);font-size:.72rem}
+.save-ind{font-size:.72rem;color:var(--muted);text-align:right;white-space:nowrap;min-width:0;flex-shrink:1;overflow:hidden;text-overflow:ellipsis}
+.save-ind b{color:var(--success)}
+
+/* ---------- Navigation ---------- */
+nav{position:sticky;top:49px;z-index:25;background:#fff;border-bottom:1px solid var(--border);overflow-x:auto;-webkit-overflow-scrolling:touch}
+.nav-in{max-width:1200px;margin:0 auto;display:flex;gap:2px;padding:4px clamp(6px,2vw,14px);min-width:max-content}
+nav button{appearance:none;border:0;background:none;padding:8px 14px;border-radius:8px;font:inherit;font-weight:600;color:var(--muted);cursor:pointer;white-space:nowrap}
+nav button.active{background:var(--accent-soft);color:var(--accent)}
+nav button:hover{background:#f1f3f8}
+nav button.active:hover{background:#e3e8ff}
+
+main{max-width:1200px;margin:0 auto;padding:clamp(12px,3vw,22px)}
+
+/* ---------- Cartes / KPI ---------- */
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;box-shadow:0 1px 2px rgba(15,23,42,.05);margin-bottom:14px;break-inside:avoid}
+.card-h{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 14px;border-bottom:1px solid var(--border);flex-wrap:wrap}
+.card-h h3{margin:0;font-size:.92rem}
+.card-h .sub{font-size:.72rem;color:var(--muted);margin-top:2px}
+.card-b{padding:12px 14px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:14px}
+.kpi{background:#fff;border:1px solid var(--border);border-radius:12px;padding:12px 14px;box-shadow:0 1px 2px rgba(15,23,42,.05)}
+.kpi .l{font-size:.66rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+.kpi .v{margin-top:4px;font-size:clamp(1.05rem,3vw,1.3rem);font-weight:800;font-variant-numeric:tabular-nums}
+.kpi .s{margin-top:3px;font-size:.7rem;color:var(--muted)}
+.pos{color:var(--success)} .neg{color:var(--danger)} .warn{color:var(--warning)} .acc{color:var(--accent)}
+
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+
+/* ---------- Tableaux ---------- */
+.tw{overflow-x:auto;border:1px solid var(--border);border-radius:12px;background:#fff;box-shadow:0 1px 2px rgba(15,23,42,.05)}
+table{width:100%;min-width:640px;border-collapse:collapse;font-variant-numeric:tabular-nums}
+th{font-size:.66rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);text-align:left;padding:8px 10px;border-bottom:1px solid var(--border);white-space:nowrap}
+td{padding:8px 10px;border-bottom:1px solid var(--border);font-size:.82rem;vertical-align:top}
+tr:last-child td{border-bottom:0}
+tbody tr:hover{background:#fafbfe}
+.r{text-align:right}
+.nowrap{white-space:nowrap}
+
+/* ---------- Boutons / badges / champs ---------- */
+.btn{appearance:none;display:inline-flex;align-items:center;gap:6px;border-radius:8px;border:1px solid transparent;
+  padding:7px 13px;font:inherit;font-size:.82rem;font-weight:600;cursor:pointer;transition:.15s}
+.btn-p{background:var(--accent);color:#fff} .btn-p:hover{background:#4338ca}
+.btn-s{background:#fff;border-color:var(--border);color:var(--text)} .btn-s:hover{background:#f1f3f8}
+.btn-d{background:var(--danger);color:#fff} .btn-d:hover{background:#b91c1c}
+.btn-x{padding:4px 9px;font-size:.72rem}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.link{background:none;border:0;padding:0;color:var(--accent);font:inherit;font-size:.78rem;cursor:pointer;text-decoration:underline}
+.link.d{color:var(--danger)}
+.badge{display:inline-flex;align-items:center;border-radius:99px;padding:2px 9px;font-size:.68rem;font-weight:600}
+.b-blue{background:#e0f2fe;color:#0369a1} .b-violet{background:#ede9fe;color:#6d28d9}
+.b-green{background:#d1fae5;color:#047857} .b-red{background:#fee2e2;color:#b91c1c}
+.b-amber{background:#fef3c7;color:#b45309} .b-gray{background:#e2e8f0;color:#475569}
+
+label{display:block;margin-bottom:10px}
+label .lab{display:block;font-size:.72rem;font-weight:600;color:var(--muted);margin-bottom:4px}
+label .hint{display:block;font-size:.68rem;color:var(--muted);margin-top:3px}
+input,select,textarea{width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font:inherit;font-size:.85rem;background:#fff;outline:none}
+input:focus,select:focus,textarea:focus{border-color:#a5b4fc;box-shadow:0 0 0 3px rgba(79,70,229,.12)}
+input:disabled{background:#f1f3f8;color:var(--muted)}
+.frow{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:0 12px}
+
+/* ---------- Alertes ---------- */
+.alert{border-radius:10px;padding:9px 13px;font-size:.78rem;margin-bottom:12px;border:1px solid}
+.a-err{background:#fef2f2;border-color:#fecaca;color:#b91c1c}
+.a-ok{background:#ecfdf5;border-color:#a7f3d0;color:#047857}
+.a-warn{background:#fffbeb;border-color:#fde68a;color:#92400e}
+.a-warn ul{margin:4px 0 0;padding-left:18px}
+.empty{text-align:center;padding:34px 12px;color:var(--muted);font-size:.85rem}
+.empty .btn{margin-top:10px}
+
+/* ---------- Modale ---------- */
+.modal-ov{position:fixed;inset:0;background:rgba(15,23,42,.45);z-index:60;display:flex;align-items:flex-start;justify-content:center;padding:16px;overflow-y:auto}
+.modal{width:100%;max-width:520px;background:#fff;border-radius:14px;box-shadow:0 20px 50px rgba(0,0,0,.25);margin:auto}
+.modal.wide{max-width:760px}
+.modal-h{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--border)}
+.modal-h h3{margin:0;font-size:.95rem}
+.modal-x{background:none;border:0;font-size:1rem;color:var(--muted);cursor:pointer;padding:4px 8px;border-radius:6px}
+.modal-x:hover{background:#f1f3f8}
+.modal-b{padding:14px 16px;max-height:72vh;overflow-y:auto}
+.modal-f{display:flex;justify-content:flex-end;gap:8px;padding:12px 16px;border-top:1px solid var(--border)}
+
+/* ---------- Graphiques ---------- */
+.chart{width:100%;height:auto;display:block}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:.72rem;color:var(--muted);margin-top:6px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+
+.pbar{height:8px;border-radius:99px;background:#e8ebf2;overflow:hidden}
+.pbar i{display:block;height:100%;border-radius:99px;background:var(--accent)}
+.pbar i.done{background:var(--success)}
+
+/* ---------- Divers ---------- */
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:1px solid var(--border);background:#f8fafc;border-radius:9px;padding:6px 10px;font-size:.78rem}
+.chip b{margin-right:4px}
+.tabs{display:flex;gap:2px;background:#eef0f5;border-radius:10px;padding:3px;width:max-content;max-width:100%;overflow-x:auto}
+.tabs button{appearance:none;border:0;background:none;padding:6px 13px;border-radius:8px;font:inherit;font-size:.78rem;font-weight:600;color:var(--muted);cursor:pointer;white-space:nowrap}
+.tabs button.active{background:#fff;color:var(--accent);box-shadow:0 1px 2px rgba(15,23,42,.08)}
+.note{font-size:.72rem;color:var(--muted);margin-top:8px}
+.row-actions{display:flex;gap:8px;flex-wrap:wrap}
+.section-title{margin:18px 0 8px;font-size:.85rem;font-weight:800;color:var(--text)}
+.onboard{text-align:center;padding:40px 16px}
+.onboard h2{font-size:clamp(1.2rem,4vw,1.5rem);margin:0 0 8px}
+.onboard p{color:var(--muted);max-width:520px;margin:0 auto 18px}
+.onboard .row-actions{justify-content:center}
+
+@media (max-width:640px){
+  .kpi{padding:10px 12px}
+  .card-h{padding:9px 12px}
+  .card-b{padding:10px 12px}
+  .save-ind{max-width:46vw}
+  .header-in{padding:8px 10px}
+}
+@media print{
+  header,nav,.no-print{display:none!important}
+  body{background:#fff}
+  .card{box-shadow:none;border:1px solid #ddd}
+  main{max-width:none;padding:0}
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="header-in">
+    <div class="brand">Personal Wealth Manager<small>Pilotage patrimonial — site web autonome</small></div>
+    <div class="save-ind" id="saveInd">Données locales</div>
+  </div>
+</header>
+
+<nav><div class="nav-in" id="nav">
+  <button data-page="dashboard" class="active">Tableau de bord</button>
+  <button data-page="accounts">Comptes</button>
+  <button data-page="transactions">Transactions</button>
+  <button data-page="assets">Actifs</button>
+  <button data-page="liabilities">Passifs &amp; dettes</button>
+  <button data-page="trading">Trading</button>
+  <button data-page="objectives">Objectifs</button>
+  <button data-page="reports">Rapports</button>
+  <button data-page="settings">Paramètres</button>
+</div></nav>
+
+<main>
+  <section id="page-dashboard"></section>
+  <section id="page-accounts" class="hidden" style="display:none"></section>
+  <section id="page-transactions" class="hidden" style="display:none"></section>
+  <section id="page-assets" class="hidden" style="display:none"></section>
+  <section id="page-liabilities" class="hidden" style="display:none"></section>
+  <section id="page-trading" class="hidden" style="display:none"></section>
+  <section id="page-objectives" class="hidden" style="display:none"></section>
+  <section id="page-reports" class="hidden" style="display:none"></section>
+  <section id="page-settings" class="hidden" style="display:none"></section>
+</main>
+
+<div id="modalRoot"></div>
+<div id="toastRoot" style="position:fixed;bottom:14px;left:50%;transform:translateX(-50%);z-index:70;max-width:92vw"></div>
+
+<script>
+"use strict";
+/* ============================================================
+   PERSONAL WEALTH MANAGER — ÉDITION SITE WEB AUTONOME
+   Moteur financier centralisé : fonctions pures, aucune dépendance.
+   Règles : transferts neutres, capital ≠ dépense, dépôts ≠ gains,
+   valorisations historisées, taux de change jamais inventés.
+   ============================================================ */
+/*ENGINE-START*/
+let DB = null;
+
+// ---------- Référentiels ----------
+var DEFAULT_CURRENCIES = [
+  { code: "XAF", name: "Franc CFA (BEAC)", symbol: "FCFA", decimals: 0 },
+  { code: "USD", name: "Dollar américain", symbol: "$", decimals: 2 },
+  { code: "EUR", name: "Euro", symbol: "€", decimals: 2 },
+  { code: "GBP", name: "Livre sterling", symbol: "£", decimals: 2 },
+  { code: "JPY", name: "Yen japonais", symbol: "¥", decimals: 0 },
+  { code: "CHF", name: "Franc suisse", symbol: "CHF", decimals: 2 },
+  { code: "CAD", name: "Dollar canadien", symbol: "C$", decimals: 2 },
+  { code: "AUD", name: "Dollar australien", symbol: "A$", decimals: 2 },
+  { code: "NZD", name: "Dollar néo-zélandais", symbol: "NZ$", decimals: 2 }
+];
+var ACCOUNT_TYPES = [
+  ["BANK","Banque"],["MOBILE_MONEY","Mobile Money"],["CASH","Espèces"],["SAVINGS","Épargne"],
+  ["BROKERAGE","Compte de courtage"],["TRADING","Compte de trading"],["INVESTMENT","Portefeuille d'investissement"],["OTHER","Autres réserves"]
+];
+var INCOME_CATEGORIES = [
+  ["SALARY","Salaires",false],["FREELANCE","Prestations",false],["BUSINESS","Revenus commerciaux",false],
+  ["RENT","Loyers",true],["DIVIDENDS","Dividendes",true],["INTEREST","Intérêts",true],
+  ["INVESTMENT_INCOME","Revenus d'investissement",true],["TRADING_REALIZED","Gains de trading réalisés",false],
+  ["EXCEPTIONAL","Revenus exceptionnels",false],["PASSIVE_OTHER","Autres revenus passifs",true]
+];
+var EXPENSE_CATEGORIES = [
+  ["HOUSING","Logement"],["FOOD","Alimentation"],["TRANSPORT","Transport"],["HEALTH","Santé"],
+  ["LEISURE","Loisirs"],["EDUCATION","Éducation"],["SUBSCRIPTIONS","Abonnements"],["OTHER_PERSONAL","Autres (personnel)"],
+  ["MAINTENANCE","Entretien"],["INSURANCE","Assurance"],["REPAIR","Réparation"],["TAXES","Taxes"],
+  ["MANAGEMENT_FEES","Frais de gestion"],["BANK_FEES","Frais bancaires"],["COMMISSIONS","Commissions"],
+  ["INVESTMENT_FEES","Frais d'investissement"],["TRADING_LOSS","Pertes de trading réalisées"]
+];
+var ASSET_CATEGORIES = [
+  ["REAL_ESTATE","Immobilier"],["LAND","Terrains"],["VEHICLE","Véhicules"],["STOCKS","Actions"],["BONDS","Obligations"],
+  ["ETF","ETF"],["GOLD","Or et métaux précieux"],["BUSINESS","Entreprises et participations"],["EQUIPMENT","Équipements"],["OTHER","Autres biens"]
+];
+var LIABILITY_CATEGORIES = [
+  ["MORTGAGE","Crédit immobilier"],["AUTO","Crédit automobile"],["PERSONAL","Emprunt personnel"],
+  ["BUSINESS","Dettes professionnelles"],["OTHER","Dettes diverses"],["COMMITMENT","Engagement financier"]
+];
+var OBJECTIVE_TYPES = [
+  ["NET_WORTH","Patrimoine net cible"],["PASSIVE_INCOME","Revenu passif mensuel cible"],
+  ["EMERGENCY_FUND","Réserve de sécurité"],["DEBT_REDUCTION","Réduction de l'endettement"],["INVESTMENT_CAPITAL","Capital investi productif"]
+];
+var LIQUIDITY_LEVELS = [["LIQUID","Liquide"],["SEMI_LIQUIDE","Semi-liquide"],["SEMI_LIQUID","Semi-liquide"],["ILLIQUID","Illiquide"]];
+var PASSIVE_CATEGORIES = {};
+INCOME_CATEGORIES.forEach(function(c){ if (c[2]) PASSIVE_CATEGORIES[c[0]] = true; });
+var FEE_CATEGORIES = { COMMISSIONS:1, INVESTMENT_FEES:1, BANK_FEES:1, MANAGEMENT_FEES:1 };
+
+function labelOf(list, value){
+  if (!value) return "—";
+  for (var i = 0; i < list.length; i++){ if (list[i][0] === value) return list[i][1]; }
+  return value;
+}
+function catLabel(type, value){
+  if (!value) return "—";
+  var list = type === "INCOME" ? INCOME_CATEGORIES : EXPENSE_CATEGORIES;
+  return labelOf(list, value);
+}
+
+// ---------- Utilitaires monétaires ----------
+function roundMoney(x, d){ d = d == null ? 2 : d; var f = Math.pow(10, d); return Math.round((x + Number.EPSILON) * f) / f; }
+function safeDiv(a, b){ return (isFinite(a) && isFinite(b) && b !== 0) ? a / b : null; }
+function sumArr(a){ var s = 0; for (var i = 0; i < a.length; i++){ if (isFinite(a[i])) s += a[i]; } return s; }
+function toBase(amount, rate){ return (isFinite(amount) && isFinite(rate) && rate > 0) ? roundMoney(amount * rate, 2) : 0; }
+function uid(){ return "id" + Date.now().toString(36) + Math.random().toString(36).slice(2, 8); }
+function isNeutral(type){ return type === "TRANSFER" || type === "ADJUSTMENT"; }
+
+// ---------- Taux de change ----------
+// rate = nombre d'unités de la devise de base pour 1 unité de la devise.
+// findRate : dernier taux connu ≤ date ; repli sur le premier taux connu si demandé (signalé) ; sinon null (jamais inventé).
+function rateFor(currency, atTs, fallback){
+  if (!DB) return null;
+  if (currency === DB.settings.baseCurrency) return 1;
+  var best = null, earliest = null;
+  for (var i = 0; i < DB.rates.length; i++){
+    var r = DB.rates[i];
+    if (r.currency !== currency) continue;
+    var ts = Date.parse(r.date);
+    if (earliest === null || ts < Date.parse(earliest.date)) earliest = r;
+    if (ts <= atTs && (best === null || ts > Date.parse(best.date))) best = r;
+  }
+  if (best) return best.rate;
+  if (fallback && earliest) return earliest.rate;
+  return null;
+}
+function latestRateOf(currency){
+  if (currency === DB.settings.baseCurrency) return 1;
+  var best = null;
+  for (var i = 0; i < DB.rates.length; i++){
+    var r = DB.rates[i];
+    if (r.currency !== currency) continue;
+    if (best === null || r.date > best.date) best = r;
+  }
+  return best ? best.rate : null;
+}
+
+// ---------- Comptes de trading (par type de compte ; plus aucun système d'espaces) ----------
+function isTradingAccount(a){ return !!a && (a.type === "TRADING" || a.type === "BROKERAGE" || a.type === "INVESTMENT"); }
+
+// ---------- Moteur de soldes ----------
+// INCOME +, EXPENSE −, TRANSFER − au départ / + à l'arrivée, ADJUSTMENT ± (documenté),
+// paiements de passif − (capital + intérêts + frais). Seules les opérations CONFIRMED affectent le solde.
+function balanceOf(accountId, atTs){
+  var acc = DB.accounts.find(function(a){ return a.id === accountId; });
+  if (!acc) return 0;
+  var bal = acc.initialBalance || 0;
+  for (var i = 0; i < DB.transactions.length; i++){
+    var t = DB.transactions[i];
+    if (t.status !== "CONFIRMED") continue;
+    if (Date.parse(t.date) > atTs) continue;
+    if (t.type === "TRANSFER"){
+      if (t.accountId === accountId) bal -= t.amount;
+      if (t.toAccountId === accountId) bal += (t.toAmount != null ? t.toAmount : t.amount);
+    } else if (t.accountId === accountId){
+      if (t.type === "INCOME") bal += t.amount;
+      else if (t.type === "EXPENSE") bal -= t.amount;
+      else if (t.type === "ADJUSTMENT") bal += t.amount;
+    }
+  }
+  for (var j = 0; j < DB.payments.length; j++){
+    var p = DB.payments[j];
+    if (p.accountId !== accountId) continue;
+    if (Date.parse(p.date) > atTs) continue;
+    bal -= (p.capital + p.interest + p.fees);
+  }
+  return roundMoney(bal, 2);
+}
+
+function liabilityRemaining(liabilityId, atTs){
+  var l = DB.liabilities.find(function(x){ return x.id === liabilityId; });
+  if (!l) return 0;
+  var paid = 0;
+  for (var i = 0; i < DB.payments.length; i++){
+    var p = DB.payments[i];
+    if (p.liabilityId === liabilityId && Date.parse(p.date) <= atTs) paid += p.capital;
+  }
+  return roundMoney(Math.max(0, l.initialAmount - paid), 2);
+}
+
+// ---------- Valorisation d'actifs (historique, jamais écrasé) ----------
+function assetValueAt(assetId, atTs){
+  var best = null;
+  for (var i = 0; i < DB.valuations.length; i++){
+    var v = DB.valuations[i];
+    if (v.assetId !== assetId) continue;
+    var ts = Date.parse(v.date);
+    if (ts <= atTs && (best === null || ts > Date.parse(best.date))) best = v;
+  }
+  return best;
+}
+function assetCost(a){ return roundMoney((a.purchasePrice || 0) + (a.fees || 0), 2); }
+
+function excludedAssetIds(){
+  var out = {};
+  for (var i = 0; i < DB.accounts.length; i++){
+    var a = DB.accounts[i];
+    if (!isTradingAccount(a) || a.equity == null) continue;
+    for (var j = 0; j < DB.assets.length; j++){
+      var as = DB.assets[j];
+      if (as.accountId === a.id && as.status === "ACTIVE") out[as.id] = true;
+    }
+  }
+  return out;
+}
+
+// ---------- Statistiques patrimoniales ----------
+// Les comptes de trading comptent UNE seule fois, via leur equity (ou solde si non saisie).
+function statsAt(atTs){
+  var base = DB.settings.baseCurrency;
+  var warnings = [];
+  var cashPersonal = 0, cashAll = 0, tradingValue = 0, assetsValue = 0, liabilities = 0;
+  var missingVal = [];
+  var excluded = excludedAssetIds();
+  var warnedExcluded = {};
+
+  for (var i = 0; i < DB.accounts.length; i++){
+    var a = DB.accounts[i];
+    if (a.status !== "ACTIVE") continue;
+    var b = balanceOf(a.id, atTs);
+    var rate = rateFor(a.currency, atTs, true);
+    if (rate == null){ warnings.push("Aucun taux connu pour " + a.currency + " : compte « " + a.name + " » exclu des totaux en " + base + "."); continue; }
+    var inBase = toBase(b, rate);
+    cashAll += inBase;
+    if (!isTradingAccount(a)) cashPersonal += inBase;
+  }
+  for (var i2 = 0; i2 < DB.accounts.length; i2++){
+    var a2 = DB.accounts[i2];
+    if (a2.status !== "ACTIVE" || !isTradingAccount(a2)) continue;
+    var eq = (a2.equity != null) ? a2.equity : balanceOf(a2.id, atTs);
+    var r2 = rateFor(a2.currency, atTs, true);
+    if (r2 == null){ warnings.push("Taux " + a2.currency + " manquant : compte trading « " + a2.name + " » exclu."); continue; }
+    tradingValue += toBase(eq, r2);
+  }
+  for (var i3 = 0; i3 < DB.assets.length; i3++){
+    var as = DB.assets[i3];
+    if (as.status !== "ACTIVE") continue;
+    if (excluded[as.id]){
+      if (!warnedExcluded[as.id]){
+        warnedExcluded[as.id] = true;
+        var accLink = DB.accounts.find(function(x){ return x.id === as.accountId; });
+        warnings.push("Actif « " + as.name + " » non additionné : sa valeur est déjà incluse dans l'equity saisie du compte" + (accLink ? " « " + accLink.name + " »" : "") + ".");
+      }
+      continue;
+    }
+    var v = assetValueAt(as.id, atTs);
+    var amount, cur, dateISO, missing = false;
+    if (v){ amount = v.value; cur = v.currency || as.currency; dateISO = v.date; }
+    else { amount = assetCost(as); cur = as.currency; dateISO = as.acquisitionDate || as.createdAt || "2000-01-01"; missing = true; }
+    var r3 = rateFor(cur, Date.parse(dateISO), true);
+    if (r3 == null){ warnings.push("Taux " + cur + " manquant : actif « " + as.name + " » exclu des totaux."); continue; }
+    if (missing) missingVal.push(as.name);
+    assetsValue += toBase(amount, r3);
+  }
+  if (missingVal.length) warnings.push("Actifs sans valorisation, comptés au coût d'acquisition : " + missingVal.join(", ") + ".");
+  for (var i4 = 0; i4 < DB.liabilities.length; i4++){
+    var l = DB.liabilities[i4];
+    if (l.status !== "ACTIVE") continue;
+    var rem = liabilityRemaining(l.id, atTs);
+    var r4 = rateFor(l.currency, Date.parse(l.startDate || "2000-01-01"), true);
+    if (r4 == null){ warnings.push("Taux " + l.currency + " manquant : dette « " + l.name + " » exclue."); continue; }
+    liabilities += toBase(rem, r4);
+  }
+  var totalAssets = roundMoney(cashPersonal + assetsValue + tradingValue, 2);
+  var totalLiab = roundMoney(liabilities, 2);
+  return {
+    cashPersonal: roundMoney(cashPersonal, 2),
+    cashAll: roundMoney(cashAll, 2),
+    assetsValue: roundMoney(assetsValue, 2),
+    tradingValue: roundMoney(tradingValue, 2),
+    totalAssets: totalAssets,
+    totalLiabilities: totalLiab,
+    netWorth: roundMoney(totalAssets - totalLiab, 2),
+    warnings: warnings
+  };
+}
+/*ENGINE-MID*/
+
+// ---------- Flux de période (revenus / dépenses / cash-flow) ----------
+function flowsBetween(fromTs, toTs){
+  var base = DB.settings.baseCurrency;
+  var warnings = [];
+  var income = 0, expense = 0, passive = 0, expected = 0;
+  var byCatIn = {}, byCatOut = {};
+  for (var i = 0; i < DB.transactions.length; i++){
+    var t = DB.transactions[i];
+    var ts = Date.parse(t.date);
+    if (ts < fromTs || ts > toTs) continue;
+    if (t.status !== "CONFIRMED"){
+      if (t.status === "EXPECTED" && t.type === "INCOME"){
+        var rr = rateFor(t.currency, ts, true);
+        if (rr != null) expected += toBase(t.amount, rr);
+      }
+      continue;
+    }
+    if (t.type === "TRANSFER" || t.type === "ADJUSTMENT") continue; // jamais revenu/dépense
+    var r = rateFor(t.currency, ts, true);
+    if (r == null){ warnings.push("Taux " + t.currency + " manquant pour « " + t.label + " » : exclu des totaux."); continue; }
+    var b = toBase(t.amount, r);
+    if (t.type === "INCOME"){
+      income += b;
+      var kIn = t.category || "OTHER";
+      byCatIn[kIn] = (byCatIn[kIn] || 0) + b;
+      if (PASSIVE_CATEGORIES[t.category]) passive += b;
+    } else {
+      expense += b;
+      var kOut = t.category || "OTHER_PERSONAL";
+      byCatOut[kOut] = (byCatOut[kOut] || 0) + b;
+    }
+  }
+  var charges = 0, capitalRepaid = 0;
+  for (var j = 0; j < DB.payments.length; j++){
+    var p = DB.payments[j];
+    var pts = Date.parse(p.date);
+    if (pts < fromTs || pts > toTs) continue;
+    var l = DB.liabilities.find(function(x){ return x.id === p.liabilityId; });
+    if (!l) continue;
+    var total = p.capital + p.interest + p.fees;
+    if (total <= 0) continue;
+    var rp = rateFor(p.currency || l.currency, pts, true);
+    if (rp == null) continue;
+    var pb = toBase(total, rp);
+    var chargePart = pb * ((p.interest + p.fees) / total);
+    charges += chargePart;
+    capitalRepaid += pb - chargePart;
+  }
+  expense = roundMoney(expense, 2);
+  charges = roundMoney(charges, 2);
+  capitalRepaid = roundMoney(capitalRepaid, 2);
+  var catsIn = Object.keys(byCatIn).map(function(k){ return [k, roundMoney(byCatIn[k], 2)]; }).sort(function(a,b){ return b[1]-a[1]; });
+  var catsOut = Object.keys(byCatOut).map(function(k){ return [k, roundMoney(byCatOut[k], 2)]; }).sort(function(a,b){ return b[1]-a[1]; });
+  return {
+    income: roundMoney(income, 2), expense: expense,
+    passive: roundMoney(passive, 2), expected: roundMoney(expected, 2),
+    charges: charges, capitalRepaid: capitalRepaid,
+    cashOut: roundMoney(expense + charges + capitalRepaid, 2),
+    net: roundMoney(income - expense - charges - capitalRepaid, 2),
+    byCatIn: catsIn, byCatOut: catsOut, warnings: warnings
+  };
+}
+
+// ---------- Agrégations temporelles ----------
+function monthKeyOf(ts){ var d = new Date(ts); return d.getUTCFullYear() + "-" + String(d.getUTCMonth() + 1).padStart(2, "0"); }
+function monthLabelFr(key){ var p = key.split("-"); return new Date(Date.UTC(+p[0], +p[1]-1, 1)).toLocaleDateString("fr-FR", { month: "short", year: "2-digit" }); }
+function monthBuckets(fromTs, toTs){
+  var out = [];
+  var d0 = new Date(fromTs);
+  var d = new Date(Date.UTC(d0.getUTCFullYear(), d0.getUTCMonth(), 1));
+  while (d.getTime() <= toTs){ out.push(d.getTime()); d.setUTCMonth(d.getUTCMonth() + 1); }
+  return out;
+}
+function monthStartTs(bucketTs){ var d = new Date(bucketTs); return Date.parse(new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), 1))); }
+function monthEndTs(bucketTs){ var d = new Date(bucketTs); return Date.parse(new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 0, 23, 59, 59))); }
+function toMonthly(amount, freq){
+  if (!isFinite(amount)) return 0;
+  if (freq === "WEEKLY") return roundMoney(amount * 52 / 12, 2);
+  if (freq === "QUARTERLY") return roundMoney(amount / 3, 2);
+  if (freq === "ANNUAL") return roundMoney(amount / 12, 2);
+  if (freq === "MONTHLY") return roundMoney(amount, 2);
+  return 0;
+}
+
+// ---------- Séries mensuelles ----------
+function monthlySeries(fromTs, toTs){
+  var buckets = monthBuckets(fromTs, toTs);
+  var labels = [], netWorth = [], liquidity = [], investments = [], income = [], expenses = [];
+  var base = DB.settings.baseCurrency;
+  for (var i = 0; i < buckets.length; i++){
+    var endTs = monthEndTs(buckets[i]);
+    var st = statsAt(endTs);
+    labels.push(monthKeyOf(buckets[i]));
+    netWorth.push(st.netWorth);
+    var cash = 0;
+    for (var j = 0; j < DB.accounts.length; j++){
+      var a = DB.accounts[j];
+      if (a.status !== "ACTIVE") continue;
+      var r = rateFor(a.currency, endTs, true);
+      if (r == null) continue;
+      cash += toBase(balanceOf(a.id, endTs), r);
+    }
+    liquidity.push(roundMoney(cash, 2));
+    var inv = 0;
+    var excluded = excludedAssetIds();
+    for (var k = 0; k < DB.accounts.length; k++){
+      var ta = DB.accounts[k];
+      if (ta.status !== "ACTIVE" || !isTradingAccount(ta)) continue;
+      var rt = rateFor(ta.currency, endTs, true);
+      if (rt == null) continue;
+      inv += toBase(ta.equity != null ? ta.equity : balanceOf(ta.id, endTs), rt);
+    }
+    for (var m = 0; m < DB.assets.length; m++){
+      var as = DB.assets[m];
+      if (as.status !== "ACTIVE" || as.role !== "INVESTMENT" || excluded[as.id]) continue;
+      var v = assetValueAt(as.id, endTs);
+      if (!v) continue;
+      var rv = rateFor(v.currency || as.currency, Date.parse(v.date), true);
+      if (rv == null) continue;
+      inv += toBase(v.value, rv);
+    }
+    investments.push(roundMoney(inv, 2));
+    var f = flowsBetween(monthStartTs(buckets[i]), endTs);
+    income.push(f.income);
+    expenses.push(roundMoney(f.expense + f.charges, 2));
+  }
+  return { labels: labels, netWorth: netWorth, liquidity: liquidity, investments: investments, income: income, expenses: expenses };
+}
+
+// ---------- Performance : XIRR et TWR ----------
+function xirr(flows){
+  if (!flows || flows.length < 2) return null;
+  var fs = flows.slice().sort(function(a,b){ return Date.parse(a.date) - Date.parse(b.date); });
+  var t0 = Date.parse(fs[0].date);
+  var hasPos = false, hasNeg = false;
+  for (var i = 0; i < fs.length; i++){ if (fs[i].amount > 0) hasPos = true; if (fs[i].amount < 0) hasNeg = true; }
+  if (!hasPos || !hasNeg) return null;
+  function yr(ts){ return (ts - t0) / (365.25 * 86400000); }
+  function npv(r){ var s = 0; for (var i = 0; i < fs.length; i++){ s += fs[i].amount / Math.pow(1 + r, yr(Date.parse(fs[i].date))); } return s; }
+  function dnpv(r){ var s = 0; for (var i = 0; i < fs.length; i++){ var t = yr(Date.parse(fs[i].date)); s -= fs[i].amount * t / Math.pow(1 + r, t + 1); } return s; }
+  var r = 0.1;
+  for (var n = 0; n < 100; n++){
+    var v = npv(r);
+    if (Math.abs(v) < 1e-7) return r;
+    var d = dnpv(r);
+    if (!isFinite(d) || d === 0) break;
+    r = r - v / d;
+    if (r <= -0.9999) r = -0.9999;
+    if (!isFinite(r)) break;
+  }
+  if (isFinite(r) && Math.abs(npv(r)) < 1e-5) return r;
+  var low = -0.9999, high = 10;
+  var fL = npv(low), fH = npv(high);
+  if (!isFinite(fL)) return null;
+  var g = 0;
+  while (fL * fH > 0 && g++ < 60){ high *= 10; fH = npv(high); if (!isFinite(fH)) return null; }
+  if (fL * fH > 0) return null;
+  for (var n2 = 0; n2 < 200; n2++){
+    var mid = (low + high) / 2;
+    var fm = npv(mid);
+    if (Math.abs(fm) < 1e-7) return mid;
+    if (fL * fm < 0){ high = mid; } else { low = mid; fL = fm; }
+  }
+  return (low + high) / 2;
+}
+
+function twr(points){
+  if (!points || points.length < 2) return null;
+  var ps = points.slice().sort(function(a,b){ return Date.parse(a.date) - Date.parse(b.date); });
+  var product = 1, ok = false;
+  for (var i = 1; i < ps.length; i++){
+    var prev = ps[i-1], cur = ps[i];
+    if (!(prev.value > 0)) continue;
+    var r = (cur.value - cur.flow - prev.value) / prev.value;
+    if (!isFinite(r)) continue;
+    product *= (1 + r);
+    ok = true;
+  }
+  return ok ? product - 1 : null;
+}
+
+// ---------- Performance des comptes de trading ----------
+function tradingPerf(){
+  var now = Date.now();
+  return DB.accounts.filter(function(a){ return isTradingAccount(a) && a.status === "ACTIVE"; }).map(function(a){
+    var deposits = 0, withdrawals = 0;
+    var flowsArr = [];
+    if (a.initialBalance > 0){
+      deposits += a.initialBalance;
+      flowsArr.push({ date: a.createdAt || "2000-01-01", amount: -a.initialBalance });
+    }
+    for (var i = 0; i < DB.transactions.length; i++){
+      var t = DB.transactions[i];
+      if (t.type !== "TRANSFER" || t.status !== "CONFIRMED" || Date.parse(t.date) > now) continue;
+      if (t.toAccountId === a.id){ var amt = t.toAmount != null ? t.toAmount : t.amount; deposits += amt; flowsArr.push({ date: t.date, amount: -amt }); }
+      if (t.accountId === a.id){ withdrawals += t.amount; flowsArr.push({ date: t.date, amount: t.amount }); }
+    }
+    var gains = 0, losses = 0, fees = 0;
+    for (var j = 0; j < DB.transactions.length; j++){
+      var tx = DB.transactions[j];
+      if (tx.accountId !== a.id || tx.status !== "CONFIRMED") continue;
+      if (tx.type === "INCOME") gains += tx.amount;
+      else if (tx.type === "EXPENSE"){
+        if (tx.category === "TRADING_LOSS") losses += tx.amount;
+        if (FEE_CATEGORIES[tx.category]) fees += tx.amount;
+      }
+    }
+    var balance = balanceOf(a.id, now);
+    var equity = a.equity != null ? a.equity : balance;
+    flowsArr.push({ date: new Date(now).toISOString().slice(0, 10), amount: equity });
+    // TWR à partir de l'historique d'equity + flux externes entre instantanés
+    var hist = (a.equityHistory || []).slice().sort(function(x,y){ return Date.parse(x.date) - Date.parse(y.date); });
+    var points = [];
+    for (var h = 0; h < hist.length; h++){
+      var prev = h > 0 ? hist[h-1] : null;
+      var flow = 0;
+      for (var q = 0; q < DB.transactions.length; q++){
+        var tt = DB.transactions[q];
+        if (tt.type !== "TRANSFER" || tt.status !== "CONFIRMED") continue;
+        var ts = Date.parse(tt.date);
+        var from = prev ? Date.parse(prev.date) : -1;
+        if (ts <= from || ts > Date.parse(hist[h].date)) continue;
+        if (tt.toAccountId === a.id) flow += (tt.toAmount != null ? tt.toAmount : tt.amount);
+        if (tt.accountId === a.id) flow -= tt.amount;
+      }
+      points.push({ date: hist[h].date, value: hist[h].equity, flow: flow });
+    }
+    if (a.equity != null && hist.length && Date.parse(hist[hist.length-1].date) < now - 86400000){
+      var last = hist[hist.length-1];
+      var flow2 = 0;
+      for (var q2 = 0; q2 < DB.transactions.length; q2++){
+        var t2 = DB.transactions[q2];
+        if (t2.type !== "TRANSFER" || t2.status !== "CONFIRMED") continue;
+        var ts2 = Date.parse(t2.date);
+        if (ts2 <= Date.parse(last.date) || ts2 > now) continue;
+        if (t2.toAccountId === a.id) flow2 += (t2.toAmount != null ? t2.toAmount : t2.amount);
+        if (t2.accountId === a.id) flow2 -= t2.amount;
+      }
+      points.push({ date: new Date(now).toISOString().slice(0, 10), value: a.equity, flow: flow2 });
+    }
+    return {
+      id: a.id, name: a.name, currency: a.currency, type: a.type,
+      deposits: roundMoney(deposits, 2), withdrawals: roundMoney(withdrawals, 2),
+      balance: balance, equity: equity, equityIsOverride: a.equity != null,
+      unrealized: a.equity != null ? roundMoney(equity - balance, 2) : null,
+      realized: roundMoney(gains - losses - fees, 2), fees: roundMoney(fees, 2),
+      xirr: xirr(flowsArr), twr: twr(points), historyCount: hist.length
+    };
+  });
+}
+
+// ---------- Analyses des actifs ----------
+function assetAnalytics(){
+  var base = DB.settings.baseCurrency, now = Date.now();
+  var st = statsAt(now);
+  var excluded = excludedAssetIds();
+  return DB.assets.map(function(a){
+    var cost = assetCost(a);
+    var v = assetValueAt(a.id, now);
+    var value = v ? v.value : null, valueDate = v ? v.date : null;
+    var valueBase = null;
+    if (v){
+      var r = rateFor(v.currency || a.currency, Date.parse(v.date), true);
+      if (r != null) valueBase = toBase(v.value, r);
+    }
+    var gain = value != null ? roundMoney(value - cost, 2) : null;
+    var gainPct = value != null ? safeDiv(gain, cost) : null;
+    var cumIn = 0, cumOut = 0, yIn = 0, yOut = 0;
+    var yearAgo = now - 365.25 * 86400000;
+    for (var i = 0; i < DB.transactions.length; i++){
+      var t = DB.transactions[i];
+      if (t.assetId !== a.id || t.status !== "CONFIRMED") continue;
+      if (t.type !== "INCOME" && t.type !== "EXPENSE") continue;
+      var rr = rateFor(t.currency, Date.parse(t.date), true);
+      if (rr == null) continue;
+      var b = toBase(t.amount, rr);
+      if (t.type === "INCOME"){ cumIn += b; if (Date.parse(t.date) >= yearAgo) yIn += b; }
+      else { cumOut += b; if (Date.parse(t.date) >= yearAgo) yOut += b; }
+    }
+    cumIn = roundMoney(cumIn, 2); cumOut = roundMoney(cumOut, 2);
+    yIn = roundMoney(yIn, 2); yOut = roundMoney(yOut, 2);
+    var expectedMonthly = (a.expectedIncome && a.incomeFrequency) ? toMonthly(a.expectedIncome, a.incomeFrequency) : 0;
+    var contribution = null;
+    if (valueBase != null && st.netWorth !== 0) contribution = roundMoney(safeDiv(valueBase, st.netWorth) * 100, 1);
+    return {
+      id: a.id, name: a.name, category: a.category, currency: a.currency, status: a.status,
+      cost: cost, value: value, valueDate: valueDate, valueBase: valueBase,
+      gain: gain, gainPct: gainPct,
+      cumIn: cumIn, cumOut: cumOut, net: roundMoney(cumIn - cumOut, 2),
+      grossYield: safeDiv(yIn, cost) == null ? null : roundMoney(safeDiv(yIn, cost) * 100, 1),
+      netYield: safeDiv(yIn - yOut, cost) == null ? null : roundMoney(safeDiv(yIn - yOut, cost) * 100, 1),
+      holdingCost: roundMoney(cumOut - cumIn, 2),
+      expectedMonthly: expectedMonthly,
+      missing: !v,
+      contribution: contribution
+    };
+  });
+}
+
+// ---------- Analyses des passifs ----------
+function liabilityInfo(l){
+  var capital = 0, interest = 0, fees = 0;
+  for (var i = 0; i < DB.payments.length; i++){
+    var p = DB.payments[i];
+    if (p.liabilityId !== l.id) continue;
+    capital += p.capital; interest += p.interest; fees += p.fees;
+  }
+  var remaining = liabilityRemaining(l.id, Date.now());
+  return {
+    id: l.id, capitalPaid: roundMoney(capital, 2), interestPaid: roundMoney(interest, 2), feesPaid: roundMoney(fees, 2),
+    remaining: remaining, progress: safeDiv(capital, l.initialAmount) == null ? null : roundMoney(safeDiv(capital, l.initialAmount) * 100, 1)
+  };
+}
+
+// ---------- Échéancier théorique ----------
+function amortizationOf(l, maxPeriods){
+  maxPeriods = maxPeriods || 600;
+  if (!l.scheduledPayment || l.scheduledPayment <= 0) return { rows: [], note: "Aucune mensualité définie : échéancier indisponible." };
+  var ppy = { WEEKLY: 52, MONTHLY: 12, QUARTERLY: 4, ANNUAL: 1 }[l.frequency] || 12;
+  var rate = (l.interestRate || 0) / 100 / ppy;
+  var rows = [], rem = l.initialAmount;
+  function addPeriod(iso, n){
+    var d = new Date(iso);
+    if (l.frequency === "WEEKLY") d.setUTCDate(d.getUTCDate() + 7 * n);
+    else if (l.frequency === "QUARTERLY") d.setUTCMonth(d.getUTCMonth() + 3 * n);
+    else if (l.frequency === "ANNUAL") d.setUTCFullYear(d.getUTCFullYear() + n);
+    else d.setUTCMonth(d.getUTCMonth() + n);
+    return d.toISOString().slice(0, 10);
+  }
+  for (var i = 1; i <= maxPeriods && rem > 0.005; i++){
+    var interest = roundMoney(rem * rate, 2);
+    var capital = roundMoney(l.scheduledPayment - interest, 2);
+    if (capital <= 0) return { rows: [], note: "La mensualité saisie ne couvre pas les intérêts : échéancier impossible." };
+    if (capital > rem) capital = rem;
+    rem = roundMoney(rem - capital, 2);
+    rows.push({ i: i, date: addPeriod(l.startDate, i), interest: interest, capital: capital, payment: roundMoney(capital + interest, 2), remaining: rem });
+    if (rows.length >= 120) break;
+  }
+  return { rows: rows, note: null };
+}
+
+// ---------- Objectifs ----------
+function objectiveProgress(o){
+  var st = statsAt(Date.now());
+  var now = new Date();
+  var mStart = Date.parse(new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1)));
+  var f = flowsBetween(mStart, Date.now());
+  var current = 0, dir = "up";
+  if (o.type === "NET_WORTH") current = st.netWorth;
+  else if (o.type === "PASSIVE_INCOME") current = f.passive;
+  else if (o.type === "EMERGENCY_FUND") current = st.cashAll;
+  else if (o.type === "DEBT_REDUCTION"){ current = st.totalLiabilities; dir = "down"; }
+  else if (o.type === "INVESTMENT_CAPITAL") current = st.tradingValue;
+  var range = o.targetAmount - o.startAmount;
+  var pct = null;
+  if (range !== 0){
+    var raw = dir === "up" ? (current - o.startAmount) / range : (o.startAmount - current) / range;
+    pct = roundMoney(Math.max(0, Math.min(100, raw * 100)), 1);
+  }
+  return {
+    current: roundMoney(current, 2), pct: pct,
+    achieved: dir === "up" ? current >= o.targetAmount : current <= o.targetAmount
+  };
+}
+
+// ---------- Répartition des actifs (graphique) ----------
+function allocationData(){
+  var base = DB.settings.baseCurrency, now = Date.now();
+  var out = {};
+  var excluded = excludedAssetIds();
+  var cash = 0, trading = 0;
+  for (var i = 0; i < DB.accounts.length; i++){
+    var a = DB.accounts[i];
+    if (a.status !== "ACTIVE") continue;
+    var r = rateFor(a.currency, now, true);
+    if (r == null) continue;
+    if (isTradingAccount(a)) trading += toBase(a.equity != null ? a.equity : balanceOf(a.id, now), r);
+    else cash += toBase(balanceOf(a.id, now), r);
+  }
+  if (cash > 0) out["Liquidités"] = roundMoney(cash, 2);
+  if (trading > 0) out["Comptes de trading"] = roundMoney(trading, 2);
+  for (var j = 0; j < DB.assets.length; j++){
+    var as = DB.assets[j];
+    if (as.status !== "ACTIVE" || excluded[as.id]) continue;
+    var v = assetValueAt(as.id, now);
+    var amount = v ? v.value : assetCost(as);
+    var dateISO = v ? v.date : (as.acquisitionDate || as.createdAt || "2000-01-01");
+    var rv = rateFor(v ? (v.currency || as.currency) : as.currency, Date.parse(dateISO), true);
+    if (rv == null) continue;
+    var key = labelOf(ASSET_CATEGORIES, as.category);
+    out[key] = roundMoney((out[key] || 0) + toBase(amount, rv), 2);
+  }
+  return Object.keys(out).map(function(k){ return { name: k, value: out[k] }; })
+    .filter(function(x){ return x.value > 0; })
+    .sort(function(a,b){ return b.value - a.value; });
+}
+
+// ---------- Rapports ----------
+function reportMonthly(ym){
+  var p = ym.split("-").map(Number);
+  var fromTs = Date.parse(new Date(Date.UTC(p[0], p[1]-1, 1)));
+  var toTs = Date.parse(new Date(Date.UTC(p[0], p[1], 0, 23, 59, 59)));
+  var pf = Date.parse(new Date(Date.UTC(p[0], p[1]-2, 1)));
+  var pt = Date.parse(new Date(Date.UTC(p[0], p[1]-1, 0, 23, 59, 59)));
+  var st = statsAt(toTs);
+  var sp = statsAt(pt);
+  var f = flowsBetween(fromTs, toTs);
+  var fp = flowsBetween(pf, pt);
+  return {
+    ym: ym, bilan: st, bilanPrev: sp, flows: f, flowsPrev: fp,
+    deltas: {
+      netWorth: roundMoney(st.netWorth - sp.netWorth, 2),
+      income: roundMoney(f.income - fp.income, 2),
+      expenses: roundMoney((f.expense + f.charges) - (fp.expense + fp.charges), 2)
+    }
+  };
+}
+function reportAnnual(year){
+  var fromTs = Date.parse(new Date(Date.UTC(year, 0, 1)));
+  var toTs = Math.min(Date.parse(new Date(Date.UTC(year, 11, 31, 23, 59, 59))), Date.now());
+  var st0 = statsAt(fromTs);
+  var st1 = statsAt(toTs);
+  var f = flowsBetween(fromTs, toTs);
+  var ser = monthlySeries(fromTs, toTs);
+  var repaid = 0, interestPaid = 0;
+  for (var i = 0; i < DB.payments.length; i++){
+    var p = DB.payments[i];
+    var ts = Date.parse(p.date);
+    if (ts < fromTs || ts > toTs) continue;
+    repaid += p.capital; interestPaid += p.interest + p.fees;
+  }
+  return { year: year, start: st0, end: st1, flows: f, series: ser, repaid: roundMoney(repaid, 2), interestPaid: roundMoney(interestPaid, 2) };
+}
+
+// ---------- État : base vierge ----------
+function blankDB(){
+  return {
+    version: 1, savedAt: null,
+    settings: { baseCurrency: "XAF", createdAt: new Date().toISOString().slice(0, 10) },
+    currencies: DEFAULT_CURRENCIES.map(function(c){ return { code: c.code, name: c.name, symbol: c.symbol, decimals: c.decimals }; }),
+    rates: [], accounts: [], transactions: [], assets: [], valuations: [],
+    liabilities: [], payments: [], objectives: []
+  };
+}
+
+/*ENGINE-MID2*/
+
+// ---------- Données de démonstration (isolées, marquées [Démo]) ----------
+function makeDemoDB(){
+  function mAgo(m, day){
+    var d = new Date();
+    d.setUTCDate(day || 1);
+    d.setUTCMonth(d.getUTCMonth() - m);
+    return d.toISOString().slice(0, 10);
+  }
+  var db = blankDB();
+  db.settings.createdAt = mAgo(12, 1);
+  db.rates = [
+    { id: uid(), currency: "USD", rate: 620, date: mAgo(12, 1) },
+    { id: uid(), currency: "USD", rate: 605, date: mAgo(6, 1) },
+    { id: uid(), currency: "EUR", rate: 655, date: mAgo(12, 1) },
+    { id: uid(), currency: "EUR", rate: 648, date: mAgo(6, 1) }
+  ];
+  var courant = { id: uid(), name: "[Démo] Compte courant", institution: "Banque démo", type: "BANK", currency: "XAF", initialBalance: 1500000, equity: null, equityNote: null, equityHistory: [], status: "ACTIVE", notes: null, createdAt: mAgo(12, 1) };
+  var cash = { id: uid(), name: "[Démo] Espèces", institution: null, type: "CASH", currency: "XAF", initialBalance: 300000, equity: null, equityNote: null, equityHistory: [], status: "ACTIVE", notes: null, createdAt: mAgo(12, 1) };
+  var epargne = { id: uid(), name: "[Démo] Épargne", institution: "Banque démo", type: "SAVINGS", currency: "XAF", initialBalance: 2000000, equity: null, equityNote: null, equityHistory: [], status: "ACTIVE", notes: null, createdAt: mAgo(12, 1) };
+  var om = { id: uid(), name: "[Démo] Mobile Money", institution: "Opérateur démo", type: "MOBILE_MONEY", currency: "XAF", initialBalance: 150000, equity: null, equityNote: null, equityHistory: [], status: "ACTIVE", notes: null, createdAt: mAgo(12, 1) };
+  var broker = { id: uid(), name: "[Démo] Broker Forex", institution: "Courtier démo", type: "TRADING", currency: "USD", initialBalance: 0, equity: 4380, equityNote: "[Démo] Positions ouvertes + cash", equityHistory: [
+    { date: mAgo(10, 25), equity: 650, note: "[Démo]" }, { date: mAgo(8, 25), equity: 1300, note: "[Démo]" },
+    { date: mAgo(6, 25), equity: 2000, note: "[Démo]" }, { date: mAgo(4, 25), equity: 2600, note: "[Démo]" },
+    { date: mAgo(2, 25), equity: 3400, note: "[Démo]" }, { date: mAgo(0, 25), equity: 4380, note: "[Démo]" }
+  ], status: "ACTIVE", notes: null, createdAt: mAgo(12, 1) };
+  var etf = { id: uid(), name: "[Démo] Portefeuille ETF", institution: "Courtier démo", type: "INVESTMENT", currency: "EUR", initialBalance: 0, equity: 1710, equityNote: "[Démo] Valorisation ETF", equityHistory: [
+    { date: mAgo(10, 22), equity: 1530, note: "[Démo]" }, { date: mAgo(0, 25), equity: 1710, note: "[Démo]" }
+  ], status: "ACTIVE", notes: null, createdAt: mAgo(12, 1) };
+  db.accounts = [courant, cash, epargne, om, broker, etf];
+
+  function tx(o){
+    db.transactions.push(Object.assign({
+      id: uid(), type: "INCOME", date: mAgo(0, 1), label: "", amount: 0, currency: "XAF",
+      rateApplied: 1, amountBase: 0, category: null, subCategory: null, frequency: "ONE_TIME",
+      status: "CONFIRMED", accountId: null, toAccountId: null, toAmount: null, toCurrency: null,
+      assetId: null, notes: null
+    }, o));
+  }
+  for (var i = 7; i >= 0; i--){
+    tx({ type: "INCOME", date: mAgo(i, 1), label: "[Démo] Salaire", amount: 850000, currency: "XAF", category: "SALARY", frequency: "MONTHLY", accountId: courant.id });
+    tx({ type: "INCOME", date: mAgo(i, 3), label: "[Démo] Loyer boutique", amount: 120000, currency: "XAF", category: "RENT", frequency: "MONTHLY", accountId: courant.id });
+    tx({ type: "EXPENSE", date: mAgo(i, 8), label: "[Démo] Courses et vie courante", amount: 260000 + (i % 3) * 20000, currency: "XAF", category: "FOOD", frequency: "MONTHLY", accountId: courant.id });
+    tx({ type: "EXPENSE", date: mAgo(i, 10), label: "[Démo] Transport", amount: 60000, currency: "XAF", category: "TRANSPORT", frequency: "MONTHLY", accountId: om.id });
+    tx({ type: "TRANSFER", date: mAgo(i, 15), label: "[Démo] Épargne mensuelle", amount: 150000, currency: "XAF", accountId: courant.id, toAccountId: epargne.id });
+  }
+  [7, 5, 3, 1].forEach(function(i){
+    var rate = i > 6 ? 620 : 605;
+    var toAmt = roundMoney(400000 / rate, 2);
+    tx({ type: "TRANSFER", date: mAgo(i, 20), label: "[Démo] Dépôt trading", amount: 400000, currency: "XAF", rateApplied: toAmt / 400000, amountBase: 400000, accountId: courant.id, toAccountId: broker.id, toAmount: toAmt, toCurrency: "USD", notes: "Transfert vers compte de trading (neutre)" });
+  });
+  tx({ type: "TRANSFER", date: mAgo(10, 22), label: "[Démo] Dépôt portefeuille ETF", amount: 1000000, currency: "XAF", rateApplied: 1 / 655, amountBase: 1000000, accountId: courant.id, toAccountId: etf.id, toAmount: roundMoney(1000000 / 655, 2), toCurrency: "EUR", notes: "Transfert vers portefeuille de trading (neutre)" });
+  tx({ type: "INCOME", date: mAgo(4, 12), label: "[Démo] Dividendes ETF", amount: 45, currency: "EUR", rateApplied: 655, amountBase: 29475, category: "DIVIDENDS", frequency: "QUARTERLY", accountId: etf.id });
+  tx({ type: "INCOME", date: mAgo(3, 18), label: "[Démo] Gains de trading réalisés", amount: 320, currency: "USD", rateApplied: 605, amountBase: 193600, category: "TRADING_REALIZED", accountId: broker.id });
+  tx({ type: "EXPENSE", date: mAgo(3, 18), label: "[Démo] Commissions broker", amount: 25, currency: "USD", rateApplied: 605, amountBase: 15125, category: "COMMISSIONS", accountId: broker.id });
+
+  var immeuble = { id: uid(), name: "[Démo] Immeuble 4 appartements", description: "Données fictives de démonstration", category: "REAL_ESTATE", subCategory: "R+3", acquisitionDate: mAgo(11, 1), purchasePrice: 28000000, fees: 1200000, currency: "XAF", financingMode: "MIXED", accountId: null, status: "ACTIVE", isProductive: true, incomeGenerating: "GENERATES", appreciation: "APPRECIATING", liquidity: "ILLIQUID", role: "INVESTMENT", expectedIncome: 320000, incomeFrequency: "MONTHLY", notes: null, createdAt: mAgo(11, 1) };
+  var voiture = { id: uid(), name: "[Démo] Véhicule familial", description: "Données fictives de démonstration", category: "VEHICLE", subCategory: null, acquisitionDate: mAgo(9, 1), purchasePrice: 8500000, fees: 100000, currency: "XAF", financingMode: "CASH", accountId: null, status: "ACTIVE", isProductive: false, incomeGenerating: "CONSUMES", appreciation: "DEPRECIATING", liquidity: "SEMI_LIQUID", role: "PERSONAL", expectedIncome: null, incomeFrequency: null, notes: null, createdAt: mAgo(9, 1) };
+  var or_ = { id: uid(), name: "[Démo] Or physique", description: "Données fictives de démonstration", category: "GOLD", subCategory: null, acquisitionDate: mAgo(7, 1), purchasePrice: 1500000, fees: 30000, currency: "XAF", financingMode: "CASH", accountId: null, status: "ACTIVE", isProductive: false, incomeGenerating: "NEUTRAL", appreciation: "APPRECIATING", liquidity: "LIQUID", role: "INVESTMENT", expectedIncome: null, incomeFrequency: null, notes: null, createdAt: mAgo(7, 1) };
+  var parts = { id: uid(), name: "[Démo] Parts société de services", description: "Données fictives de démonstration", category: "BUSINESS", subCategory: null, acquisitionDate: mAgo(10, 1), purchasePrice: 2000000, fees: 50000, currency: "XAF", financingMode: "CASH", accountId: null, status: "ACTIVE", isProductive: true, incomeGenerating: "GENERATES", appreciation: "STABLE", liquidity: "ILLIQUID", role: "INVESTMENT", expectedIncome: null, incomeFrequency: null, notes: null, createdAt: mAgo(10, 1) };
+  db.assets = [immeuble, voiture, or_, parts];
+  function val(a, m, v, note){
+    db.valuations.push({ id: uid(), assetId: a.id, date: mAgo(m, 1), value: v, currency: a.currency, rateApplied: 1, valueBase: v, note: note || "[Démo] Estimation" });
+  }
+  val(immeuble, 11, 29200000); val(immeuble, 8, 29800000); val(immeuble, 5, 30500000); val(immeuble, 2, 31200000); val(immeuble, 0, 31800000);
+  val(voiture, 0, 6800000, "[Démo] Cote argus");
+  val(or_, 0, 1780000, "[Démo] Cours or");
+  val(parts, 0, 2100000, "[Démo] Valorisation comptable");
+  tx({ type: "INCOME", date: mAgo(1, 3), label: "[Démo] Loyer immeuble", amount: 320000, currency: "XAF", category: "RENT", accountId: courant.id, assetId: immeuble.id });
+  tx({ type: "EXPENSE", date: mAgo(2, 14), label: "[Démo] Réparation toiture", amount: 250000, currency: "XAF", category: "REPAIR", accountId: courant.id, assetId: immeuble.id });
+
+  var credit = { id: uid(), name: "[Démo] Crédit immobilier", creditor: "Banque démo", category: "MORTGAGE", currency: "XAF", initialAmount: 12000000, interestRate: 6.5, startDate: mAgo(11, 1), dueDate: null, scheduledPayment: 165000, frequency: "MONTHLY", linkedAssetId: immeuble.id, status: "ACTIVE", notes: null };
+  db.liabilities = [credit];
+  for (var pi = 11; pi >= 5; pi--){
+    db.payments.push({ id: uid(), liabilityId: credit.id, date: mAgo(pi, 5), capital: 108000 + (11 - pi) * 700, interest: 65000 - (11 - pi) * 500, fees: 1500, currency: "XAF", rateApplied: 1, accountId: courant.id, notes: "[Démo] Échéance mensuelle" });
+  }
+  db.objectives = [
+    { id: uid(), name: "[Démo] Patrimoine net 50 M FCFA", type: "NET_WORTH", startAmount: 30000000, targetAmount: 50000000, currency: "XAF", startDate: mAgo(12), dueDate: null, status: "ACTIVE", notes: "Objectif fictif de démonstration" },
+    { id: uid(), name: "[Démo] Revenu passif 500 k/mois", type: "PASSIVE_INCOME", startAmount: 100000, targetAmount: 500000, currency: "XAF", startDate: mAgo(12), dueDate: null, status: "ACTIVE", notes: "Objectif fictif de démonstration" }
+  ];
+  return db;
+}
+
+// Exposition pour tests automatisés (Node) — sans effet dans le navigateur.
+if (typeof document === "undefined" && typeof globalThis !== "undefined"){
+  globalThis.__PWM__ = {
+    setDB: function(v){ DB = v; }, getDB: function(){ return DB; },
+    statsAt: statsAt, flowsBetween: flowsBetween, balanceOf: balanceOf,
+    liabilityRemaining: liabilityRemaining, assetValueAt: assetValueAt, assetCost: assetCost,
+    rateFor: rateFor, latestRateOf: latestRateOf, xirr: xirr, twr: twr,
+    monthlySeries: monthlySeries, tradingPerf: tradingPerf, assetAnalytics: assetAnalytics,
+    liabilityInfo: liabilityInfo, amortizationOf: amortizationOf, objectiveProgress: objectiveProgress,
+    allocationData: allocationData, reportMonthly: reportMonthly, reportAnnual: reportAnnual,
+    blankDB: blankDB, makeDemoDB: makeDemoDB, toMonthly: toMonthly, roundMoney: roundMoney
+  };
+}
+/*ENGINE-END*/
+
+// ============================================================
+// PERSISTANCE LOCALE (localStorage) — les données restent dans le navigateur
+// ============================================================
+var LS_KEY = "pwm-web-v1";
+function normalizeDB(d){
+  var b = blankDB();
+  var out = Object.assign({}, b, d);
+  out.settings = Object.assign({}, b.settings, d.settings || {});
+  out.currencies = (d.currencies && d.currencies.length) ? d.currencies : b.currencies;
+  ["rates","accounts","transactions","assets","valuations","liabilities","payments","objectives"].forEach(function(k){
+    if (!Array.isArray(out[k])) out[k] = [];
+  });
+  return out;
+}
+function loadDB(){
+  try {
+    var raw = localStorage.getItem(LS_KEY);
+    if (!raw) return null;
+    var d = JSON.parse(raw);
+    if (!d || !d.settings || !Array.isArray(d.accounts)) return null;
+    return normalizeDB(d);
+  } catch (e){ return null; }
+}
+function saveDB(){
+  if (!DB) return;
+  DB.savedAt = new Date().toISOString();
+  try { localStorage.setItem(LS_KEY, JSON.stringify(DB)); updateSaveInd(true); }
+  catch (e){ updateSaveInd(false); }
+  maybeDailySnapshot();
+  maybeAutoPush();
+}
+function updateSaveInd(ok){
+  var el = document.getElementById("saveInd");
+  if (!el) return;
+  if (ok){
+    var t = new Date();
+    el.innerHTML = "Sauvegardé <b>" + t.toLocaleTimeString("fr-FR") + "</b> · dans ce navigateur";
+  } else el.textContent = "⚠ Échec de sauvegarde locale";
+}
+
+// ---------- Historique local d'instantanés (5 derniers) ----------
+var HIST_KEY = "pwm-local-history-v1";
+function loadHistory(){ try { return JSON.parse(localStorage.getItem(HIST_KEY) || "[]"); } catch (e){ return []; } }
+function pushSnapshot(){
+  try {
+    var json = JSON.stringify(DB);
+    if (json.length > 2000000) return false;
+    var hist = loadHistory();
+    hist.unshift({ date: new Date().toISOString(), size: json.length, json: json });
+    localStorage.setItem(HIST_KEY, JSON.stringify(hist.slice(0, 5)));
+    return true;
+  } catch (e){ return false; }
+}
+function restoreSnapshot(i){
+  var hist = loadHistory();
+  if (!hist[i]) return;
+  if (!confirm("Restaurer l'instantané local du " + fmtDate(hist[i].date) + " ? Les données actuelles seront remplacées.")) return;
+  DB = normalizeDB(JSON.parse(hist[i].json));
+  saveDB(); showPage("dashboard");
+  toast("Instantané local restauré.");
+}
+var _lastSnapshotDay = null;
+function maybeDailySnapshot(){
+  if (!DB || !(DB.accounts.length || DB.transactions.length || DB.assets.length)) return;
+  var day = todayISO();
+  if (_lastSnapshotDay === day) return;
+  if (!loadHistory().some(function(h){ return h.date.slice(0, 10) === day; })){
+    if (pushSnapshot()) _lastSnapshotDay = day;
+  }
+}
+
+// ---------- Sauvegarde GitHub via token personnel ----------
+var GH_KEY = "pwm-github-v1";
+var ghCfg = (function(){
+  try {
+    var c = JSON.parse(localStorage.getItem(GH_KEY));
+    if (c && typeof c === "object") return Object.assign({ token: "", owner: "", repo: "", branch: "main", path: "pwm-backup.json", auto: false }, c);
+  } catch (e){}
+  return { token: "", owner: "", repo: "", branch: "main", path: "pwm-backup.json", auto: false };
+})();
+function saveGhCfg(){ localStorage.setItem(GH_KEY, JSON.stringify(ghCfg)); }
+function ghLast(){ try { return JSON.parse(localStorage.getItem("pwm-github-last") || "null"); } catch (e){ return null; } }
+function ghSetLast(v){ localStorage.setItem("pwm-github-last", JSON.stringify(v)); }
+var ghLastPushAt = (function(){ var l = ghLast(); return (l && l.ok && l.date) ? Date.parse(l.date) : 0; })();
+function ghHeaders(){
+  return { "Accept": "application/vnd.github+json", "Authorization": "Bearer " + ghCfg.token, "X-GitHub-Api-Version": "2022-11-28" };
+}
+function ghUrl(){ return "https://api.github.com/repos/" + encodeURIComponent(ghCfg.owner) + "/" + encodeURIComponent(ghCfg.repo) + "/contents/" + (ghCfg.path || "pwm-backup.json"); }
+function ghErrText(status, e){
+  if (status === 401) return "Token invalide ou expiré (401). Régénérez votre Personal Access Token.";
+  if (status === 403) return "Accès refusé (403) : le token doit avoir la permission « Contents : Read and write » sur ce dépôt.";
+  if (status === 404) return "Introuvable (404) : vérifiez propriétaire, nom du dépôt et branche — et que le token accède à ce dépôt.";
+  return "Erreur GitHub " + status + " : " + ((e && e.message) || "réponse inattendue");
+}
+function ghFetch(url, opts){
+  return fetch(url, opts).catch(function(){
+    throw new Error("Impossible de joindre api.github.com (hors ligne, réseau bloqué ou URL invalide).");
+  });
+}
+function utf8ToBase64(str){
+  var bytes = new TextEncoder().encode(str), bin = "";
+  for (var i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+  return btoa(bin);
+}
+function ghPush(message){
+  if (!ghCfg.token || !ghCfg.owner || !ghCfg.repo)
+    return Promise.reject(new Error("Configuration GitHub incomplète : token, propriétaire et dépôt sont requis."));
+  var payload = JSON.stringify({ app: "Personal Wealth Manager (web)", version: 1, exportedAt: new Date().toISOString(), data: DB }, null, 2);
+  var body = { message: message || "Sauvegarde PWM", content: utf8ToBase64(payload), branch: ghCfg.branch || "main" };
+  return ghFetch(ghUrl(), { headers: ghHeaders() }).then(function(r){
+    if (r.status === 200) return r.json();
+    if (r.status === 404) return null;
+    return r.json().then(function(e){ throw new Error(ghErrText(r.status, e)); });
+  }).then(function(meta){
+    if (meta && meta.sha) body.sha = meta.sha;
+    return ghFetch(ghUrl(), { method: "PUT", headers: ghHeaders(), body: JSON.stringify(body) }).then(function(r){
+      if (r.ok) return r.json();
+      return r.json().then(function(e){ throw new Error(ghErrText(r.status, e)); });
+    });
+  });
+}
+function ghPushDone(res){
+  ghLastPushAt = Date.now();
+  ghSetLast({ ok: true, date: new Date().toISOString(), url: res && res.commit ? res.commit.html_url : null });
+  updateGhStatus();
+}
+function ghPushFail(e){
+  ghSetLast({ ok: false, date: new Date().toISOString(), error: String(e && e.message || e) });
+  updateGhStatus();
+}
+function ghTest(){
+  if (!ghCfg.token || !ghCfg.owner || !ghCfg.repo) return Promise.reject(new Error("Renseignez d'abord le token, le propriétaire et le dépôt."));
+  return ghFetch("https://api.github.com/repos/" + encodeURIComponent(ghCfg.owner) + "/" + encodeURIComponent(ghCfg.repo), { headers: ghHeaders() })
+    .then(function(r){
+      if (r.ok) return r.json();
+      return r.json().then(function(e){ throw new Error(ghErrText(r.status, e)); });
+    });
+}
+function ghRestore(){
+  if (!ghCfg.token || !ghCfg.owner || !ghCfg.repo) return Promise.reject(new Error("Configuration GitHub incomplète."));
+  return ghFetch(ghUrl(), { headers: Object.assign({}, ghHeaders(), { "Accept": "application/vnd.github.raw" }) }).then(function(r){
+    if (r.status === 404) throw new Error("Aucune sauvegarde trouvée à cet emplacement (404). Envoyez d'abord une sauvegarde.");
+    if (!r.ok) return r.json().then(function(e){ throw new Error(ghErrText(r.status, e)); });
+    return r.text();
+  }).then(function(text){
+    var parsed;
+    try { parsed = JSON.parse(text); } catch (e){ throw new Error("Le fichier distant n'est pas un JSON valide."); }
+    var d = parsed && parsed.data ? parsed.data : parsed;
+    if (!d || !d.settings || !Array.isArray(d.accounts)) throw new Error("Le fichier distant n'est pas une sauvegarde PWM valide.");
+    if (!confirm("Restaurer la sauvegarde GitHub (" + d.accounts.length + " comptes, " + (d.transactions || []).length + " opérations) ?\n\nLes données locales actuelles seront REMPLACÉES (un instantané local sera créé avant).")) return "annulé";
+    pushSnapshot();
+    DB = normalizeDB(d);
+    saveDB(); showPage("dashboard");
+    return "restaurée";
+  });
+}
+var ghTimer = null;
+function maybeAutoPush(){
+  if (!ghCfg.auto || !ghCfg.token || !ghCfg.owner || !ghCfg.repo) return;
+  if (ghTimer) clearTimeout(ghTimer);
+  ghTimer = setTimeout(function(){
+    ghTimer = null;
+    if (Date.now() - ghLastPushAt < 5 * 60 * 1000) return;
+    ghPush("Sauvegarde automatique PWM — " + new Date().toLocaleString("fr-FR"))
+      .then(function(res){ ghPushDone(res); })
+      .catch(function(e){ ghPushFail(e); });
+  }, 30000);
+}
+function updateGhStatus(){
+  var el = document.getElementById("ghStatus");
+  if (!el) return;
+  var l = ghLast();
+  if (!l){ el.textContent = "Dernière sauvegarde GitHub : jamais."; return; }
+  el.innerHTML = "Dernière sauvegarde GitHub : " + (l.ok ? '<b style="color:var(--success)">succès</b>' : '<b style="color:var(--danger)">échec</b>') +
+    " — " + fmtDate(l.date) + " " + new Date(l.date).toLocaleTimeString("fr-FR") +
+    (l.url ? ' · <a href="' + esc(l.url) + '" target="_blank" rel="noopener">voir le commit</a>' : "") +
+    (l.error ? '<br>⚠ ' + esc(l.error) : "");
+}
+
+// ---------- Aides d'affichage ----------
+function esc(s){
+  return String(s == null ? "" : s).replace(/[&<>"']/g, function(c){
+    return { "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c];
+  });
+}
+function fmtMoney(v, currency, d){
+  d = d == null ? 2 : d;
+  if (v == null || !isFinite(v)) return "—";
+  var sign = v < 0 ? "−" : "";
+  return sign + Math.abs(v).toLocaleString("fr-FR", { minimumFractionDigits: d, maximumFractionDigits: d }) + (currency ? " " + currency : "");
+}
+function fmtCompact(v, currency){
+  if (v == null || !isFinite(v)) return "—";
+  var abs = Math.abs(v), out;
+  if (abs >= 1e9) out = (v / 1e9).toLocaleString("fr-FR", { maximumFractionDigits: 2 }) + " Md";
+  else if (abs >= 1e6) out = (v / 1e6).toLocaleString("fr-FR", { maximumFractionDigits: 2 }) + " M";
+  else if (abs >= 1e4) out = (v / 1e3).toLocaleString("fr-FR", { maximumFractionDigits: 1 }) + " k";
+  else out = v.toLocaleString("fr-FR", { maximumFractionDigits: 0 });
+  return out + (currency ? " " + currency : "");
+}
+function fmtPct(v, d){
+  d = d == null ? 1 : d;
+  if (v == null || !isFinite(v)) return "—";
+  return (v >= 0 ? "" : "−") + Math.abs(v).toFixed(d) + " %";
+}
+function fmtDate(s){
+  if (!s) return "—";
+  var d = new Date(s);
+  return isNaN(d.getTime()) ? "—" : d.toLocaleDateString("fr-FR", { day: "2-digit", month: "short", year: "numeric" });
+}
+function todayISO(){ return new Date().toISOString().slice(0, 10); }
+function toast(msg, tone){
+  var root = document.getElementById("toastRoot");
+  var el = document.createElement("div");
+  el.className = "alert " + (tone === "err" ? "a-err" : "a-ok");
+  el.style.marginTop = "8px";
+  el.textContent = msg;
+  root.appendChild(el);
+  setTimeout(function(){ el.remove(); }, 4200);
+}
+function download(filename, content, mime){
+  var blob = new Blob([content], { type: mime || "application/octet-stream" });
+  var a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(function(){ URL.revokeObjectURL(a.href); }, 1500);
+}
+function csvCell(v){
+  var s = v == null ? "" : String(v);
+  return /[",;\r\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+}
+function downloadCSV(filename, rows){
+  var csv = "\uFEFF" + rows.map(function(r){ return r.map(csvCell).join(";"); }).join("\r\n");
+  download(filename, csv, "text/csv;charset=utf-8");
+}
+
+// ---------- Modales ----------
+function openModal(title, bodyHTML, opts){
+  opts = opts || {};
+  var root = document.getElementById("modalRoot");
+  root.innerHTML = '<div class="modal-ov"><div class="modal' + (opts.wide ? " wide" : "") + '">' +
+    '<div class="modal-h"><h3>' + esc(title) + '</h3><button class="modal-x" title="Fermer">✕</button></div>' +
+    '<div class="modal-b">' + bodyHTML + '</div><div class="modal-f"></div></div></div>';
+  root.querySelector(".modal-x").onclick = closeModal;
+  root.querySelector(".modal-ov").addEventListener("click", function(e){ if (e.target === this) closeModal(); });
+  return root;
+}
+function modalFooter(buttons){
+  var mf = document.querySelector("#modalRoot .modal-f");
+  if (!mf) return;
+  buttons.forEach(function(b){
+    var el = document.createElement("button");
+    el.className = "btn btn-" + (b.variant || "p") + (b.x ? " btn-x" : "");
+    el.textContent = b.label;
+    el.disabled = !!b.disabled;
+    el.onclick = b.onClick;
+    mf.appendChild(el);
+  });
+}
+function closeModal(){ document.getElementById("modalRoot").innerHTML = ""; }
+function gv(id){ var el = document.getElementById("f_" + id); return el ? el.value.trim() : ""; }
+function gn(id){ var v = parseFloat(String(gv(id)).replace(",", ".")); return isFinite(v) ? v : NaN; }
+
+function fInput(id, label, type, value, opts){
+  opts = opts || {};
+  return '<label><span class="lab">' + label + (opts.required ? " *" : "") + '</span>' +
+    '<input id="f_' + id + '" type="' + (type || "text") + '" value="' + esc(value == null ? "" : String(value)) + '"' +
+    (opts.step ? ' step="' + opts.step + '"' : "") + (opts.min != null ? ' min="' + opts.min + '"' : "") +
+    (opts.disabled ? " disabled" : "") + (opts.placeholder ? ' placeholder="' + esc(opts.placeholder) + '"' : "") + '>' +
+    (opts.hint ? '<span class="hint">' + opts.hint + "</span>" : "") + "</label>";
+}
+function fSelect(id, label, options, value, opts){
+  opts = opts || {};
+  var h = '<label><span class="lab">' + label + (opts.required ? " *" : "") + '</span><select id="f_' + id + '"' + (opts.disabled ? " disabled" : "") + ">";
+  options.forEach(function(o){ h += '<option value="' + esc(o.v) + '"' + (String(value) === String(o.v) ? " selected" : "") + ">" + esc(o.l) + "</option>"; });
+  h += "</select>" + (opts.hint ? '<span class="hint">' + opts.hint + "</span>" : "") + "</label>";
+  return h;
+}
+function fTextarea(id, label, value, opts){
+  opts = opts || {};
+  return '<label><span class="lab">' + label + (opts.required ? " *" : "") + '</span><textarea id="f_' + id + '" rows="2">' + esc(value == null ? "" : String(value)) + "</textarea>" +
+    (opts.hint ? '<span class="hint">' + opts.hint + "</span>" : "") + "</label>";
+}
+
+// ---------- Graphiques SVG (sans dépendance) ----------
+var CHART_COLORS = ["#4f46e5","#059669","#d97706","#dc2626","#0891b2","#7c3aed","#db2777","#65a30d","#ea580c","#0d9488","#6366f1","#f59e0b"];
+function compactNum(v){
+  var abs = Math.abs(v);
+  if (abs >= 1e9) return (v / 1e9).toFixed(1).replace(".0","") + "Md";
+  if (abs >= 1e6) return (v / 1e6).toFixed(1).replace(".0","") + "M";
+  if (abs >= 1e3) return Math.round(v / 1e3) + "k";
+  return String(Math.round(v));
+}
+function chartLine(data, series, opts){
+  opts = opts || {};
+  var h = opts.h || 230, W = 640, H = h;
+  var padL = 56, padR = 10, padT = 12, padB = 24;
+  var vals = [];
+  data.forEach(function(d){ series.forEach(function(s){ var v = d[s.key]; if (v != null && isFinite(v)) vals.push(v); }); });
+  if (!vals.length) return '<p class="empty">Aucune donnée sur la période sélectionnée.</p>';
+  var min = Math.min(0, Math.min.apply(null, vals)), max = Math.max(0, Math.max.apply(null, vals));
+  if (max === min) max = min + 1;
+  var pad = (max - min) * 0.08; max += pad; if (min < 0) min -= pad;
+  var plotW = W - padL - padR, plotH = H - padT - padB;
+  function y(v){ return padT + plotH - (v - min) / (max - min) * plotH; }
+  function x(i){ return padL + (data.length === 1 ? plotW / 2 : i / (data.length - 1) * plotW); }
+  var g = "";
+  for (var t = 0; t <= 4; t++){
+    var v = min + (max - min) * t / 4;
+    g += '<line x1="' + padL + '" y1="' + y(v) + '" x2="' + (W - padR) + '" y2="' + y(v) + '" stroke="#eef0f4"/>' +
+      '<text x="' + (padL - 6) + '" y="' + (y(v) + 3) + '" text-anchor="end" font-size="10" fill="#64708a">' + compactNum(v) + "</text>";
+  }
+  var step = Math.ceil(data.length / 7);
+  data.forEach(function(d, i){
+    if (i % step === 0 || i === data.length - 1)
+      g += '<text x="' + x(i) + '" y="' + (H - 6) + '" text-anchor="middle" font-size="10" fill="#64708a">' + esc(monthLabelFr(d.label)) + "</text>";
+  });
+  series.forEach(function(s, si){
+    var color = s.color || CHART_COLORS[si % CHART_COLORS.length];
+    var segs = [], cur = [];
+    data.forEach(function(d, i){
+      var v = d[s.key];
+      if (v != null && isFinite(v)) cur.push([x(i), y(v), v, d.label]);
+      else if (cur.length){ segs.push(cur); cur = []; }
+    });
+    if (cur.length) segs.push(cur);
+    segs.forEach(function(seg){
+      var path = seg.map(function(p, i){ return (i ? "L" : "M") + p[0].toFixed(1) + " " + p[1].toFixed(1); }).join(" ");
+      if (opts.area && si === 0 && seg.length > 1)
+        g += '<path d="' + path + " L" + seg[seg.length-1][0].toFixed(1) + " " + y(min) + " L" + seg[0][0].toFixed(1) + " " + y(min) + ' Z" fill="' + color + '" opacity="0.12"/>';
+      g += '<path d="' + path + '" fill="none" stroke="' + color + '" stroke-width="2"/>';
+      seg.forEach(function(p){
+        g += '<circle cx="' + p[0].toFixed(1) + '" cy="' + p[1].toFixed(1) + '" r="2.5" fill="#fff" stroke="' + color + '" stroke-width="1.5"><title>' +
+          esc(monthLabelFr(p[3])) + " — " + s.name + " : " + fmtMoney(p[2], "") + "</title></circle>";
+      });
+    });
+  });
+  var legend = '<div class="legend">' + series.map(function(s, si){
+    return '<span><i style="background:' + (s.color || CHART_COLORS[si % CHART_COLORS.length]) + '"></i>' + esc(s.name) + "</span>";
+  }).join("") + "</div>";
+  return '<svg class="chart" viewBox="0 0 ' + W + " " + H + '" role="img">' + g + "</svg>" + legend;
+}
+function chartBars(data, series, opts){
+  opts = opts || {};
+  var h = opts.h || 230, W = 640, H = h;
+  var padL = 56, padR = 10, padT = 12, padB = 24;
+  var vals = [];
+  data.forEach(function(d){ series.forEach(function(s){ var v = d[s.key]; if (v != null && isFinite(v)) vals.push(v); }); });
+  if (!vals.length) return '<p class="empty">Aucune donnée sur la période sélectionnée.</p>';
+  var max = Math.max(0, Math.max.apply(null, vals)) * 1.08;
+  var plotW = W - padL - padR, plotH = H - padT - padB;
+  function y(v){ return padT + plotH - v / max * plotH; }
+  var g = "";
+  for (var t = 0; t <= 4; t++){
+    var v = max * t / 4;
+    g += '<line x1="' + padL + '" y1="' + y(v) + '" x2="' + (W - padR) + '" y2="' + y(v) + '" stroke="#eef0f4"/>' +
+      '<text x="' + (padL - 6) + '" y="' + (y(v) + 3) + '" text-anchor="end" font-size="10" fill="#64708a">' + compactNum(v) + "</text>";
+  }
+  var n = data.length, groupW = plotW / n;
+  var barW = Math.min(26, groupW * 0.7 / series.length);
+  data.forEach(function(d, i){
+    var cx = padL + groupW * (i + 0.5);
+    if (i % Math.ceil(n / 7) === 0 || i === n - 1)
+      g += '<text x="' + cx + '" y="' + (H - 6) + '" text-anchor="middle" font-size="10" fill="#64708a">' + esc(monthLabelFr(d.label)) + "</text>";
+    series.forEach(function(s, si){
+      var v = d[s.key];
+      if (v == null || !isFinite(v)) return;
+      var color = s.color || CHART_COLORS[si % CHART_COLORS.length];
+      var bx = cx - barW * series.length / 2 + barW * si;
+      g += '<rect x="' + bx.toFixed(1) + '" y="' + y(v).toFixed(1) + '" width="' + (barW - 2).toFixed(1) + '" height="' + (plotH + padT - y(v)).toFixed(1) + '" rx="3" fill="' + color + '"><title>' +
+        esc(monthLabelFr(d.label)) + " — " + s.name + " : " + fmtMoney(v, "") + "</title></rect>";
+    });
+  });
+  var legend = '<div class="legend">' + series.map(function(s, si){
+    return '<span><i style="background:' + (s.color || CHART_COLORS[si % CHART_COLORS.length]) + '"></i>' + esc(s.name) + "</span>";
+  }).join("") + "</div>";
+  return '<svg class="chart" viewBox="0 0 ' + W + " " + H + '" role="img">' + g + "</svg>" + legend;
+}
+function chartPie(items){
+  var filtered = items.filter(function(x){ return x.value > 0; });
+  if (!filtered.length) return '<p class="empty">Aucune donnée à répartir.</p>';
+  var total = sumArr(filtered.map(function(x){ return x.value; }));
+  var R = 74, C = 2 * Math.PI * R, acc = 0;
+  var W = 320, H = 190, cx = 95, cy = 95;
+  var g = '<circle cx="' + cx + '" cy="' + cy + '" r="' + R + '" fill="none" stroke="#eef0f4" stroke-width="34"/>';
+  filtered.forEach(function(it, i){
+    var len = it.value / total * C;
+    var color = CHART_COLORS[i % CHART_COLORS.length];
+    g += '<circle cx="' + cx + '" cy="' + cy + '" r="' + R + '" fill="none" stroke="' + color + '" stroke-width="34" stroke-dasharray="' + len.toFixed(2) + " " + (C - len).toFixed(2) + '" stroke-dashoffset="' + (-acc).toFixed(2) + '" transform="rotate(-90 ' + cx + " " + cy + ')"><title>' + esc(it.name) + " : " + fmtCompact(it.value, "") + "</title></circle>";
+    acc += len;
+  });
+  var legend = filtered.map(function(it, i){
+    var pct = total ? (it.value / total * 100).toFixed(1) : "0";
+    return '<span style="min-width:45%"><i style="background:' + CHART_COLORS[i % CHART_COLORS.length] + '"></i>' + esc(it.name) + " · " + fmtCompact(it.value, "") + " (" + pct + " %)</span>";
+  }).join("");
+  return '<svg class="chart" style="max-width:340px;margin:0 auto;display:block" viewBox="0 0 ' + W + " " + H + '" role="img">' + g + "</svg>" + '<div class="legend">' + legend + "</div>";
+}
+
+// ---------- Navigation ----------
+var PAGES = ["dashboard","accounts","transactions","assets","liabilities","trading","objectives","reports","settings"];
+var RENDER = {};
+function showPage(p){
+  PAGES.forEach(function(pg){
+    var sec = document.getElementById("page-" + pg);
+    if (sec) sec.style.display = (pg === p) ? "" : "none";
+  });
+  document.querySelectorAll("nav button").forEach(function(b){
+    b.classList.toggle("active", b.dataset.page === p);
+  });
+  if (RENDER[p]) RENDER[p]();
+  window.scrollTo(0, 0);
+}
+function rerender(){
+  var active = document.querySelector("nav button.active");
+  showPage(active ? active.dataset.page : "dashboard");
+}
+function accountById(id){ return DB.accounts.find(function(a){ return a.id === id; }); }
+function activeAccounts(){ return DB.accounts.filter(function(a){ return a.status === "ACTIVE"; }); }
+function statusBadge(s){ return s === "ACTIVE" ? '<span class="badge b-green">Actif</span>' : (s === "CLOSED" ? '<span class="badge b-red">Clôturé</span>' : '<span class="badge b-gray">Archivé</span>'); }
+
+// ============================================================
+// PAGE COMPTES
+// ============================================================
+RENDER.accounts = function(){
+  var sec = document.getElementById("page-accounts");
+  var active = DB.accounts.filter(function(a){ return a.status === "ACTIVE"; });
+  var archived = DB.accounts.filter(function(a){ return a.status !== "ACTIVE"; });
+  var rows = "";
+  active.forEach(function(a){
+    var bal = balanceOf(a.id, Date.now());
+    var nbTx = DB.transactions.filter(function(t){ return t.accountId === a.id || t.toAccountId === a.id; }).length;
+    rows += "<tr><td><b>" + esc(a.name) + "</b>" + (a.institution ? ' <span class="note" style="display:inline">' + esc(a.institution) + "</span>" : "") + "</td>" +
+      "<td>" + labelOf(ACCOUNT_TYPES, a.type) + "</td><td>" + esc(a.currency) + "</td>" +
+      '<td class="r nowrap"><b>' + fmtMoney(bal, a.currency) + "</b></td><td class=\"r\">" + nbTx + "</td>" +
+      '<td><div class="row-actions">' +
+      '<button class="link" data-act="edit" data-id="' + a.id + '">Modifier</button>' +
+      '<button class="link" data-act="adjust" data-id="' + a.id + '">Rapprocher</button>' +
+      (isTradingAccount(a) ? '<button class="link" data-act="equity" data-id="' + a.id + '">Equity</button>' : "") +
+      '<button class="link d" data-act="del" data-id="' + a.id + '">Suppr.</button></div></td></tr>';
+  });
+  if (!active.length) rows = '<tr><td colspan="6"><div class="empty">Aucun compte actif. Créez votre premier compte pour commencer.</div></td></tr>';
+  var archivedHtml = "";
+  if (archived.length){
+    var arows = "";
+    archived.forEach(function(a){
+      arows += "<tr><td><b>" + esc(a.name) + "</b></td><td>" + labelOf(ACCOUNT_TYPES, a.type) + "</td><td>" + esc(a.currency) + '</td><td class="r">' + fmtMoney(balanceOf(a.id, Date.now()), a.currency) + "</td><td>" + statusBadge(a.status) + "</td></tr>";
+    });
+    archivedHtml = '<div class="card"><div class="card-h"><h3>Comptes archivés / clôturés (' + archived.length + ')</h3></div><div class="card-b"><div class="tw"><table><thead><tr><th>Compte</th><th>Type</th><th>Devise</th><th class="r">Solde</th><th>Statut</th></tr></thead><tbody>' + arows + "</tbody></table></div></div></div>";
+  }
+  sec.innerHTML =
+    '<div class="card"><div class="card-h"><div><h3>Comptes</h3><div class="sub">Banque, Mobile Money, espèces, épargne, courtage et trading — soldes calculés par le moteur financier.</div></div>' +
+    '<div class="row-actions"><button class="btn btn-s" id="btnTransfer">⇄ Transfert</button><button class="btn btn-p" id="btnAddAccount">+ Compte</button></div></div>' +
+    '<div class="card-b"><div class="tw"><table><thead><tr><th>Compte</th><th>Type</th><th>Devise</th><th class="r">Solde actuel</th><th class="r">Ops</th><th>Actions</th></tr></thead><tbody>' + rows + "</tbody></table></div>" +
+    '<p class="note">Les transferts entre comptes sont neutres pour les revenus et dépenses. Le rapprochement corrige le solde par un ajustement documenté.</p></div></div>' + archivedHtml;
+  document.getElementById("btnAddAccount").onclick = function(){ openAccountModal(null); };
+  document.getElementById("btnTransfer").onclick = function(){ openTransferModal(); };
+  sec.querySelectorAll("button[data-act]").forEach(function(b){
+    var id = b.dataset.id;
+    b.onclick = function(){
+      if (b.dataset.act === "edit") openAccountModal(accountById(id));
+      else if (b.dataset.act === "adjust") openAdjustModal(accountById(id));
+      else if (b.dataset.act === "equity") openEquityModal(accountById(id));
+      else if (b.dataset.act === "del") deleteAccount(id);
+    };
+  });
+};
+
+function openAccountModal(existing){
+  var e = existing || {};
+  var body = '<div class="frow">' +
+    fInput("name", "Nom du compte", "text", e.name, { required: true, placeholder: "Ex. Compte courant Ecobank" }) +
+    fInput("institution", "Institution", "text", e.institution, { placeholder: "Ex. Ecobank, Orange Money…" }) +
+    fSelect("type", "Type", ACCOUNT_TYPES.map(function(t){ return { v: t[0], l: t[1] }; }), e.type || "BANK") +
+    fSelect("currency", "Devise", DB.currencies.map(function(c){ return { v: c.code, l: c.code + " — " + c.name }; }), e.currency || DB.settings.baseCurrency) +
+    fInput("initialBalance", "Solde initial", "number", e.initialBalance != null ? e.initialBalance : 0, { step: "any", hint: "Peut être négatif (découvert)." }) +
+    (existing ? fSelect("status", "Statut", [{ v: "ACTIVE", l: "Actif" }, { v: "ARCHIVED", l: "Archivé" }, { v: "CLOSED", l: "Clôturé" }], e.status) : "") +
+    "</div>" + fTextarea("notes", "Notes", e.notes);
+  openModal(existing ? "Modifier le compte" : "Nouveau compte", body, { wide: true });
+  modalFooter([
+    { label: "Annuler", variant: "s", onClick: closeModal },
+    { label: existing ? "Enregistrer" : "Créer le compte", onClick: function(){
+      var name = gv("name");
+      if (!name){ toast("Le nom du compte est requis.", "err"); return; }
+      var data = {
+        name: name, institution: gv("institution") || null, type: gv("type"),
+        currency: gv("currency"), initialBalance: gn("initialBalance") || 0, notes: gv("notes") || null
+      };
+      if (existing){
+        Object.assign(existing, data, { status: gv("status") || existing.status });
+        toast("Compte mis à jour.");
+      } else {
+        DB.accounts.push(Object.assign({
+          id: uid(), equity: null, equityNote: null, equityHistory: [], status: "ACTIVE", createdAt: todayISO()
+        }, data));
+        toast("Compte créé.");
+      }
+      saveDB(); closeModal(); rerender();
+    }}
+  ]);
+}
+
+function openTransferModal(){
+  var accs = activeAccounts();
+  if (accs.length < 2){ toast("Il faut au moins deux comptes actifs pour un transfert.", "err"); return; }
+  var opts = accs.map(function(a){ return { v: a.id, l: a.name + " (" + a.currency + ")" }; });
+  var body = '<div id="xferBody"><div class="frow">' +
+    fSelect("from", "Compte débité", opts, accs[0].id, { required: true }) +
+    fSelect("to", "Compte crédité", opts, accs[1].id, { required: true }) +
+    fInput("amount", "Montant débité", "number", "", { step: "any", required: true }) +
+    '<div id="toAmountWrap" style="display:none">' + fInput("toAmount", "Montant crédité", "number", "", { step: "any", required: true, hint: "Conversion manuelle entre devises différentes." }) + "</div>" +
+    fInput("date", "Date", "date", todayISO(), { required: true }) +
+    "</div>" + fTextarea("notes", "Notes", "") +
+    '<p class="note" id="xferNote">Le transfert est neutre : ni revenu, ni dépense, ni gain.</p></div>';
+  openModal("Transfert entre comptes", body, { wide: true });
+  function refresh(){
+    var from = accountById(gv("from")), to = accountById(gv("to"));
+    var cross = from && to && from.currency !== to.currency;
+    document.getElementById("toAmountWrap").style.display = cross ? "" : "none";
+    var n = document.getElementById("xferNote");
+    n.textContent = "Le transfert est neutre : ni revenu, ni dépense, ni gain.";
+  }
+  document.getElementById("f_from").onchange = refresh;
+  document.getElementById("f_to").onchange = refresh;
+  refresh();
+  modalFooter([
+    { label: "Annuler", variant: "s", onClick: closeModal },
+    { label: "Enregistrer le transfert", onClick: function(){
+      var from = accountById(gv("from")), to = accountById(gv("to"));
+      var amount = gn("amount"), toAmount = gv("toAmount") ? gn("toAmount") : null;
+      if (!from || !to){ toast("Choisissez les deux comptes.", "err"); return; }
+      if (from.id === to.id){ toast("Les comptes doivent être différents.", "err"); return; }
+      if (!(amount > 0)){ toast("Montant invalide.", "err"); return; }
+      if (from.currency !== to.currency && !(toAmount > 0)){ toast("Saisissez le montant crédité (devises différentes).", "err"); return; }
+      var rate = from.currency === to.currency ? 1 : toAmount / amount;
+      var baseRate = rateFor(from.currency, Date.parse(gv("date")), false);
+      if (baseRate == null){ toast("Aucun taux connu pour " + from.currency + ". Ajoutez-le dans Paramètres → Taux.", "err"); return; }
+      DB.transactions.push({
+        id: uid(), type: "TRANSFER",
+        label: gv("notes") ? "[Transfert] " + gv("notes").slice(0, 60) : "Transfert " + from.name + " → " + to.name,
+        amount: amount, currency: from.currency, rateApplied: rate, amountBase: toBase(amount, baseRate),
+        date: gv("date"), category: null, subCategory: null, frequency: "ONE_TIME", status: "CONFIRMED",
+        accountId: from.id, toAccountId: to.id, toAmount: (from.currency === to.currency ? null : toAmount), toCurrency: (from.currency === to.currency ? null : to.currency),
+        assetId: null, notes: gv("notes") || null
+      });
+      saveDB(); closeModal(); rerender();
+      toast("Transfert enregistré (neutre pour revenus et dépenses).");
+    }}
+  ]);
+}
+
+function openAdjustModal(acc){
+  if (!acc) return;
+  var current = balanceOf(acc.id, Date.now());
+  var body = '<p class="note" style="margin-top:0">Solde calculé actuellement : <b>' + fmtMoney(current, acc.currency) + "</b>. Saisissez le solde réel constaté (relevé, comptage d'espèces…). Un ajustement documenté sera créé.</p>" +
+    '<div class="frow">' + fInput("newBalance", "Nouveau solde constaté (" + acc.currency + ")", "number", "", { step: "any", required: true }) +
+    fInput("date", "Date", "date", todayISO(), { required: true }) + "</div>" +
+    fTextarea("notes", "Justification *", "", { hint: "Obligatoire : documente l'écart (frais non enregistrés, erreur de saisie…)." });
+  openModal("Rapprochement de solde — " + acc.name, body);
+  modalFooter([
+    { label: "Annuler", variant: "s", onClick: closeModal },
+    { label: "Corriger le solde", onClick: function(){
+      var target = gn("newBalance");
+      var notes = gv("notes");
+      if (!isFinite(target)){ toast("Solde invalide.", "err"); return; }
+      if (!notes){ toast("La justification est obligatoire pour un rapprochement.", "err"); return; }
+      var delta = roundMoney(target - current, 2);
+      if (delta === 0){ toast("Le solde est déjà exact."); closeModal(); return; }
+      var rate = rateFor(acc.currency, Date.parse(gv("date")), false);
+      if (rate == null){ toast("Aucun taux connu pour " + acc.currency + ". Ajoutez-le dans Paramètres.", "err"); return; }
+      DB.transactions.push({
+        id: uid(), type: "ADJUSTMENT", label: "[Rapprochement] " + notes.slice(0, 70),
+        amount: delta, currency: acc.currency, rateApplied: rate, amountBase: toBase(delta, rate),
+        date: gv("date"), category: null, subCategory: null, frequency: "ONE_TIME", status: "CONFIRMED",
+        accountId: acc.id, toAccountId: null, toAmount: null, toCurrency: null, assetId: null, notes: notes
+      });
+      saveDB(); closeModal(); rerender();
+      toast("Rapprochement enregistré (ajustement documenté de " + fmtMoney(delta, acc.currency) + ").");
+    }}
+  ]);
+}
+
+function openEquityModal(acc){
+  if (!acc) return;
+  var current = balanceOf(acc.id, Date.now());
+  var body = '<p class="note" style="margin-top:0">Equity = valeur réelle du compte y compris positions ouvertes. Solde de caisse actuel : <b>' + fmtMoney(current, acc.currency) + "</b>.</p>" +
+    '<div class="frow">' + fInput("equity", "Equity (" + acc.currency + ")", "number", acc.equity != null ? acc.equity : current, { step: "any", required: true }) +
+    fInput("date", "Date", "date", todayISO(), { required: true }) + "</div>" + fTextarea("note", "Note", acc.equityNote || "", { hint: "Ex. après clôture des positions EURUSD." });
+  openModal("Equity — " + acc.name, body);
+  modalFooter([
+    { label: "Annuler", variant: "s", onClick: closeModal },
+    { label: "Enregistrer l'equity", onClick: function(){
+      var eq = gn("equity");
+      if (!isFinite(eq)){ toast("Equity invalide.", "err"); return; }
+      acc.equity = eq;
+      acc.equityNote = gv("note") || null;
+      acc.equityHistory = acc.equityHistory || [];
+      acc.equityHistory.push({ date: gv("date"), equity: eq, note: gv("note") || "Mise à jour" });
+      saveDB(); closeModal(); rerender();
+      toast("Equity mise à jour avec instantané historique (base du TWR).");
+    }}
+  ]);
+}
+
+function deleteAccount(id){
+  var refs = DB.transactions.some(function(t){ return t.accountId === id || t.toAccountId === id; }) ||
+    DB.payments.some(function(p){ return p.accountId === id; });
+  if (refs){ toast("Impossible de supprimer : ce compte contient des opérations. Archivez-le plutôt (Modifier → Statut).", "err"); return; }
+  if (!confirm("Supprimer définitivement ce compte (sans opérations) ?")) return;
+  DB.accounts = DB.accounts.filter(function(a){ return a.id !== id; });
+  saveDB(); rerender();
+  toast("Compte supprimé.");
+}
+
+// ============================================================
+// PAGE TRANSACTIONS
+// ============================================================
+var txState = { tab: "INCOME", month: "", account: "", search: "" };
+RENDER.transactions = function(){
+  var sec = document.getElementById("page-transactions");
+  var tabs = [["INCOME","Revenus"],["EXPENSE","Dépenses"],["TRANSFER","Transferts"],["ADJUSTMENT","Ajustements"]];
+  var tabsHtml = '<div class="tabs" id="txTabs">' + tabs.map(function(t){
+    return '<button data-tab="' + t[0] + '"' + (txState.tab === t[0] ? ' class="active"' : "") + ">" + t[1] + "</button>";
+  }).join("") + "</div>";
+  var accOpts = [{ v: "", l: "Tous les comptes" }].concat(DB.accounts.map(function(a){ return { v: a.id, l: a.name }; }));
+  var rows = "";
+  var list = DB.transactions.filter(function(t){
+    if (t.type !== txState.tab) return false;
+    if (txState.month && t.date.slice(0, 7) !== txState.month) return false;
+    if (txState.account && t.accountId !== txState.account && t.toAccountId !== txState.account) return false;
+    if (txState.search && t.label.toLowerCase().indexOf(txState.search.toLowerCase()) < 0) return false;
+    return true;
+  }).sort(function(a,b){ return Date.parse(b.date) - Date.parse(a.date); }).slice(0, 200);
+  list.forEach(function(t){
+    var acc = accountById(t.accountId), toAcc = accountById(t.toAccountId);
+    var cls = t.type === "INCOME" ? "pos" : t.type === "EXPENSE" ? "neg" : "";
+    rows += "<tr><td class=\"nowrap\">" + fmtDate(t.date) + "</td><td>" + esc(t.label) + "</td>" +
+      "<td>" + (t.type === "TRANSFER" && acc && toAcc ? esc(acc.name) + " → " + esc(toAcc.name) : (acc ? esc(acc.name) : "—")) + "</td>" +
+      "<td>" + (t.category ? esc(catLabel(t.type, t.category)) : "—") + "</td>" +
+      "<td>" + (t.status === "CONFIRMED" ? '<span class="badge b-green">OK</span>' : (t.status === "EXPECTED" ? '<span class="badge b-amber">Attente</span>' : '<span class="badge b-red">Annulé</span>')) + "</td>" +
+      '<td class="r nowrap ' + cls + '">' + fmtMoney(t.amount, t.currency) + "</td>" +
+      '<td class="r nowrap note" style="display:table-cell">' + fmtMoney(t.amountBase, "") + "</td>" +
+      '<td><div class="row-actions">' + (t.type !== "TRANSFER" ? '<button class="link" data-act="edit" data-id="' + t.id + '">Modif.</button>' : "") +
+      '<button class="link d" data-act="del" data-id="' + t.id + '">Suppr.</button></div></td></tr>';
+  });
+  if (!list.length) rows = '<tr><td colspan="8"><div class="empty">Aucune opération pour ces filtres.</div></td></tr>';
+  sec.innerHTML =
+    '<div class="card"><div class="card-h"><div><h3>Transactions</h3><div class="sub">Registre centralisé — les transferts sont neutres, les ajustements sont documentés.</div></div>' +
+    '<div class="row-actions"><button class="btn btn-s" id="btnTxIncome">+ Revenu</button><button class="btn btn-s" id="btnTxExpense">+ Dépense</button>' +
+    '<button class="btn btn-s" id="btnTxTransfer">⇄ Transfert</button><button class="btn btn-p" id="btnTxAdjust">± Ajustement</button></div></div>' +
+    '<div class="card-b">' + tabsHtml +
+    '<div class="frow" style="margin-top:10px">' +
+    '<label><span class="lab">Mois</span><input type="month" id="txMonth" value="' + esc(txState.month) + '"></label>' +
+    '<label><span class="lab">Compte</span><select id="txAccount">' + accOpts.map(function(o){ return '<option value="' + o.v + '"' + (txState.account === o.v ? " selected" : "") + ">" + esc(o.l) + "</option>"; }).join("") + "</select></label>" +
+    '<label><span class="lab">Recherche</span><input type="text" id="txSearch" value="' + esc(txState.search) + '" placeholder="Libellé…"></label>' +
+    "</div>" +
+    '<div class="tw"><table><thead><tr><th>Date</th><th>Libellé</th><th>Compte</th><th>Catégorie</th><th>Statut</th><th class="r">Montant</th><th class="r">Base</th><th></th></tr></thead><tbody>' + rows + "</tbody></table></div>" +
+    '<p class="note">' + list.length + " opération(s) affichée(s)" + (list.length >= 200 ? " (200 premières)" : "") + ". La colonne Base est la contre-valeur en " + esc(DB.settings.baseCurrency) + " au taux appliqué lors de la saisie.</p>" +
+    "</div></div>";
+  document.getElementById("txTabs").querySelectorAll("button").forEach(function(b){
+    b.onclick = function(){ txState.tab = b.dataset.tab; RENDER.transactions(); };
+  });
+  document.getElementById("txMonth").onchange = function(e){ txState.month = e.target.value; RENDER.transactions(); };
+  document.getElementById("txAccount").onchange = function(e){ txState.account = e.target.value; RENDER.transactions(); };
+  document.getElementById("txSearch").oninput = function(e){ txState.search = e.target.value; RENDER.transactions(); };
+  document.getElementById("btnTxIncome").onclick = function(){ openTxModal("INCOME"); };
+  document.getElementById("btnTxExpense").onclick = function(){ openTxModal("EXPENSE"); };
+  document.getElementById("btnTxTransfer").onclick = openTransferModal;
+  document.getElementById("btnTxAdjust").onclick = function(){ openTxModal("ADJUSTMENT"); };
+  sec.querySelectorAll("button[data-act]").forEach(function(b){
+    var id = b.dataset.id;
+    b.onclick = function(){
+      if (b.dataset.act === "edit") openTxModal("EDIT", DB.transactions.find(function(t){ return t.id === id; }));
+      else if (b.dataset.act === "del") deleteTransaction(id);
+    };
+  });
+};
+
+function deleteTransaction(id){
+  var t = DB.transactions.find(function(x){ return x.id === id; });
+  if (!t) return;
+  if (!confirm("Supprimer l'opération « " + t.label + " » ?")) return;
+  DB.transactions = DB.transactions.filter(function(x){ return x.id !== id; });
+  saveDB(); rerender();
+  toast("Opération supprimée.");
+}
+
+function openTxModal(type, existing, presetAssetId){
+  var isTransfer = type === "TRANSFER", isEdit = !!existing;
+  if (isEdit){ type = existing.type; isTransfer = type === "TRANSFER"; }
+  var accs = activeAccounts();
+  var accOpts = accs.map(function(a){ return { v: a.id, l: a.name + " (" + a.currency + ")" }; });
+  if (!accOpts.length){ toast("Créez d'abord un compte actif.", "err"); return; }
+  var assetOpts = [{ v: "", l: "— Aucun —" }].concat(DB.assets.filter(function(a){ return a.status === "ACTIVE"; }).map(function(a){ return { v: a.id, l: a.name }; }));
+  var body = "";
+  if (!isTransfer){
+    var cats = (type === "INCOME" ? INCOME_CATEGORIES : EXPENSE_CATEGORIES).map(function(c){ return { v: c[0], l: c[1] }; });
+    body += '<div class="frow">' +
+      fSelect("accountId", type === "INCOME" ? "Compte destinataire" : "Compte utilisé", accOpts, existing ? existing.accountId : accs[0].id, { required: true, hint: "La devise de l'opération est celle du compte." }) +
+      fInput("amount", "Montant", "number", existing ? existing.amount : "", { step: "any", required: true, hint: type === "ADJUSTMENT" ? "Delta signé : + pour corriger vers le haut, − vers le bas." : null }) +
+      fInput("date", "Date", "date", existing ? existing.date : todayISO(), { required: true }) +
+      (type !== "ADJUSTMENT" ? fSelect("category", "Catégorie", cats, existing ? existing.category : "", { required: true }) : "") +
+      (type !== "ADJUSTMENT" ? fInput("subCategory", "Sous-catégorie", "text", existing ? existing.subCategory : "", { placeholder: "Ex. essence, loyer bureau…" }) : "") +
+      (type !== "ADJUSTMENT" ? fSelect("status", "Statut", [{ v: "CONFIRMED", l: "Confirmé" }, { v: "EXPECTED", l: "Attendu" }, { v: "CANCELLED", l: "Annulé" }], existing ? existing.status : "CONFIRMED", { hint: "Les revenus « attendus » ne sont pas comptés comme encaissés." }) : "") +
+      (type !== "ADJUSTMENT" ? fSelect("frequency", "Fréquence", [["ONE_TIME","Ponctuel"],["WEEKLY","Hebdomadaire"],["MONTHLY","Mensuel"],["QUARTERLY","Trimestriel"],["ANNUAL","Annuel"]].map(function(f){ return { v: f[0], l: f[1] }; }), existing ? existing.frequency : "ONE_TIME") : "") +
+      "</div>" +
+      fSelect("assetId", "Actif associé (optionnel)", assetOpts, existing ? existing.assetId : (presetAssetId || ""), { hint: "Lier l'opération à un actif pour analyser sa rentabilité." }) +
+      fInput("label", "Libellé", "text", existing ? existing.label : "", { required: true, placeholder: "Ex. Salaire novembre, Loyer boutique…" }) +
+      fTextarea("notes", "Notes" + (type === "ADJUSTMENT" ? " *" : ""), existing ? existing.notes : "", type === "ADJUSTMENT" ? { hint: "Obligatoire pour un ajustement de solde." } : {});
+  } else {
+    var opts2 = accs.map(function(a){ return { v: a.id, l: a.name + " (" + a.currency + ")" }; });
+    body += '<div class="frow">' +
+      fSelect("accountId", "Compte débité", opts2, accs[0].id, { required: true }) +
+      fSelect("toAccountId", "Compte crédité", opts2, accs[Math.min(1, accs.length-1)].id, { required: true }) +
+      fInput("amount", "Montant débité", "number", "", { step: "any", required: true }) +
+      '<div id="toAmountWrap" style="display:none">' + fInput("toAmount", "Montant crédité", "number", "", { step: "any", required: true }) + "</div>" +
+      fInput("date", "Date", "date", todayISO(), { required: true }) +
+      "</div>" + fInput("label", "Libellé", "text", "", { placeholder: "Ex. Dépôt trading, Retrait gains…" });
+  }
+  openModal(isEdit ? "Modifier l'opération" : (isTransfer ? "Transfert entre comptes" : (type === "INCOME" ? "Nouveau revenu" : type === "EXPENSE" ? "Nouvelle dépense" : "Ajustement de solde")), body, { wide: true });
+  function refreshXfer(){
+    var from = accountById(gv("accountId")), to = accountById(gv("toAccountId"));
+    var wrap = document.getElementById("toAmountWrap");
+    if (wrap) wrap.style.display = (from && to && from.currency !== to.currency) ? "" : "none";
+  }
+  if (isTransfer){
+    document.getElementById("f_accountId").onchange = refreshXfer;
+    document.getElementById("f_toAccountId").onchange = refreshXfer;
+    refreshXfer();
+  }
+  modalFooter([
+    { label: "Annuler", variant: "s", onClick: closeModal },
+    { label: isEdit ? "Enregistrer" : "Enregistrer l'opération", onClick: function(){
+      if (isTransfer){
+        var from = accountById(gv("accountId")), to = accountById(gv("toAccountId"));
+        var amount = gn("amount"), toAmount = gv("toAmount") ? gn("toAmount") : null;
+        if (!from || !to || from.id === to.id){ toast("Choisissez deux comptes différents.", "err"); return; }
+        if (!(amount > 0)){ toast("Montant invalide.", "err"); return; }
+        if (from.currency !== to.currency && !(toAmount > 0)){ toast("Saisissez le montant crédité (devises différentes).", "err"); return; }
+        var rate = from.currency === to.currency ? 1 : toAmount / amount;
+        var baseRate = rateFor(from.currency, Date.parse(gv("date")), false);
+        if (baseRate == null){ toast("Aucun taux connu pour " + from.currency + ". Ajoutez-le dans Paramètres.", "err"); return; }
+        DB.transactions.push({
+          id: uid(), type: "TRANSFER", label: gv("label") || "Transfert",
+          amount: amount, currency: from.currency, rateApplied: rate, amountBase: toBase(amount, baseRate),
+          date: gv("date"), category: null, subCategory: null, frequency: "ONE_TIME", status: "CONFIRMED",
+          accountId: from.id, toAccountId: to.id, toAmount: from.currency === to.currency ? null : toAmount, toCurrency: from.currency === to.currency ? null : to.currency,
+          assetId: null, notes: null
+        });
+        saveDB(); closeModal(); rerender();
+        toast("Transfert enregistré (neutre).");
+        return;
+      }
+      var acc = accountById(gv("accountId"));
+      if (!acc){ toast("Compte introuvable.", "err"); return; }
+      var amount = gn("amount");
+      if (!isFinite(amount) || (type === "ADJUSTMENT" ? amount === 0 : amount <= 0)){ toast(type === "ADJUSTMENT" ? "Le delta ne peut pas être nul." : "Le montant doit être positif.", "err"); return; }
+      var notes = gv("notes");
+      if (type === "ADJUSTMENT" && !notes){ toast("Un ajustement doit être documenté (notes obligatoires).", "err"); return; }
+      var date = gv("date") || todayISO();
+      var rate = rateFor(acc.currency, Date.parse(date), false);
+      if (rate == null){ toast("Aucun taux connu pour " + acc.currency + ". Ajoutez-le dans Paramètres → Taux.", "err"); return; }
+      var data = {
+        type: type,
+        label: gv("label") || (type === "INCOME" ? "Revenu" : type === "EXPENSE" ? "Dépense" : "Ajustement de solde"),
+        amount: amount, currency: acc.currency, rateApplied: rate, amountBase: toBase(amount, rate),
+        date: date, category: type === "ADJUSTMENT" ? null : gv("category") || null,
+        subCategory: type === "ADJUSTMENT" ? null : gv("subCategory") || null,
+        frequency: type === "ADJUSTMENT" ? "ONE_TIME" : gv("frequency") || "ONE_TIME",
+        status: type === "ADJUSTMENT" ? "CONFIRMED" : gv("status") || "CONFIRMED",
+        accountId: acc.id, assetId: gv("assetId") || null,
+        notes: notes || null
+      };
+      if (isEdit && existing){
+        Object.assign(existing, data);
+        toast("Opération mise à jour.");
+      } else {
+        data.id = uid(); data.toAccountId = null; data.toAmount = null; data.toCurrency = null;
+        DB.transactions.push(data);
+        toast("Opération enregistrée.");
+      }
+      saveDB(); closeModal(); rerender();
+    }}
+  ]);
+}
+
+// ============================================================
+// PAGE TABLEAU DE BORD
+// ============================================================
+var dashState = { period: "12m" };
+function firstActivityTs(){
+  var ts = Date.now();
+  DB.transactions.forEach(function(t){ var d = Date.parse(t.date); if (d < ts) ts = d; });
+  DB.accounts.forEach(function(a){ var d = Date.parse(a.createdAt || "2000-01-01"); if (d < ts) ts = d; });
+  DB.assets.forEach(function(a){ var d = Date.parse(a.acquisitionDate || a.createdAt || "2000-01-01"); if (d < ts) ts = d; });
+  DB.liabilities.forEach(function(l){ var d = Date.parse(l.startDate); if (d < ts) ts = d; });
+  return ts;
+}
+function kpi(l, v, s, tone){
+  return '<div class="kpi"><div class="l">' + l + '</div><div class="v ' + (tone || "") + '">' + v + "</div>" + (s ? '<div class="s">' + s + "</div>" : "") + "</div>";
+}
+RENDER.dashboard = function(){
+  var sec = document.getElementById("page-dashboard");
+  var base = DB.settings.baseCurrency;
+  if (!DB.accounts.length && !DB.transactions.length){
+    sec.innerHTML = '<div class="card"><div class="onboard"><h2>Bienvenue dans votre espace patrimonial personnel</h2>' +
+      '<p>Ce site garde toutes vos données <b>dans votre navigateur</b> (rien n\'est envoyé sur Internet), avec sauvegardes locales et GitHub. Commencez par créer un compte, ou chargez des données de démonstration pour explorer.</p>' +
+      '<div class="row-actions"><button class="btn btn-p" id="obAccount">+ Créer mon premier compte</button>' +
+      '<button class="btn btn-s" id="obDemo">Charger les données de démonstration</button></div></div></div>';
+    document.getElementById("obAccount").onclick = function(){ openAccountModal(null); };
+    document.getElementById("obDemo").onclick = loadDemo;
+    return;
+  }
+  var now = Date.now();
+  var nb = { "3m": 3, "6m": 6, "12m": 12 }[dashState.period] || 0;
+  var fromTs;
+  if (nb){
+    var d0 = new Date(now);
+    fromTs = Date.parse(new Date(Date.UTC(d0.getUTCFullYear(), d0.getUTCMonth() - (nb - 1), 1)));
+  } else fromTs = monthStartTs(firstActivityTs());
+  var st = statsAt(now);
+  var mStart = Date.parse(new Date(Date.UTC(new Date(now).getUTCFullYear(), new Date(now).getUTCMonth(), 1)));
+  var mf = flowsBetween(mStart, now);
+  var pf = flowsBetween(fromTs, now);
+  var series = monthlySeries(fromTs, now);
+  var alloc = allocationData();
+  var tp = tradingPerf();
+  var aa = assetAnalytics().filter(function(x){ return x.status === "ACTIVE"; });
+  var invAssets = aa.filter(function(x){ return x.cost > 0 && (x.valueBase != null || x.value == null); });
+  var totCost = sumArr(invAssets.map(function(x){ return x.cost; }));
+  var totGain = sumArr(invAssets.map(function(x){ return x.gain != null ? x.gain : 0; }));
+  var assetPerf = safeDiv(totGain, totCost);
+  var portfolio = sumArr(invAssets.map(function(x){ return x.valueBase != null ? x.valueBase : x.cost; })) + st.tradingValue;
+  var xirrs = tp.map(function(x){ return x.xirr; }).filter(function(x){ return x != null; });
+  var meanXirr = xirrs.length ? sumArr(xirrs) / xirrs.length : null;
+  var twrs = tp.map(function(x){ return x.twr; }).filter(function(x){ return x != null; });
+  var meanTwr = twrs.length ? sumArr(twrs) / twrs.length : null;
+  var covExp = safeDiv(mf.passive, mf.expense + mf.charges);
+  var warnings = st.warnings.concat(pf.warnings);
+
+  var periodSel = '<select id="dashPeriod" style="width:auto">' + [["3m","3 mois"],["6m","6 mois"],["12m","12 mois"],["all","Depuis le début"]].map(function(p){
+    return '<option value="' + p[0] + '"' + (dashState.period === p[0] ? " selected" : "") + ">" + p[1] + "</option>";
+  }).join("") + "</select>";
+
+  var kpis = "";
+  kpis += kpi("Patrimoine net", fmtCompact(st.netWorth, base), fmtMoney(st.netWorth, base), "acc");
+  kpis += kpi("Total des actifs", fmtCompact(st.totalAssets, base), "Comptes + actifs + trading");
+  kpis += kpi("Total des passifs", fmtCompact(st.totalLiabilities, base), "Capital restant dû", st.totalLiabilities > 0 ? "warn" : "");
+  kpis += kpi("Liquidités", fmtCompact(st.cashAll, base), "Soldes de comptes");
+  kpis += kpi("Revenus du mois", fmtCompact(mf.income, base), "Encaissés", "pos");
+  kpis += kpi("Dépenses du mois", fmtCompact(mf.expense + mf.charges, base), "Hors capital remboursé", "neg");
+  kpis += kpi("Cash-flow du mois", fmtCompact(mf.net, base), "Encaissements − décaissements", mf.net >= 0 ? "pos" : "neg");
+  kpis += kpi("Revenus passifs du mois", fmtCompact(mf.passive, base), "Couverture dépenses : " + fmtPct(covExp == null ? null : roundMoney(covExp * 100, 1)), "pos");
+  kpis += kpi("Taux d'épargne", fmtPct(safeDiv(pf.net, pf.income) == null ? null : roundMoney(safeDiv(pf.net, pf.income) * 100, 1)), "Sur la période");
+  kpis += kpi("Taux d'endettement", fmtPct(safeDiv(st.totalLiabilities, st.totalAssets) == null ? null : roundMoney(safeDiv(st.totalLiabilities, st.totalAssets) * 100, 1)), "Passifs / actifs");
+  kpis += kpi("Portefeuille d'investissement", fmtCompact(portfolio, base), "Placements + equity trading");
+  kpis += kpi("Performance des actifs", fmtPct(assetPerf == null ? null : roundMoney(assetPerf * 100, 1)), "Plus/moins-value latente", assetPerf != null && assetPerf >= 0 ? "pos" : "neg");
+  if (tp.length){
+    kpis += kpi("XIRR trading moyen", fmtPct(meanXirr == null ? null : roundMoney(meanXirr * 100, 1)), "Money-Weighted (flux datés)", meanXirr != null && meanXirr >= 0 ? "pos" : "neg");
+    kpis += kpi("TWR trading moyen", fmtPct(meanTwr == null ? null : roundMoney(meanTwr * 100, 1)), "Time-Weighted (instantanés)", meanTwr != null && meanTwr >= 0 ? "pos" : "neg");
+  }
+
+  var nwData = series.labels.map(function(label, i){ return { label: label, netWorth: series.netWorth[i] }; });
+  var nwSeries = [{ key: "netWorth", name: "Patrimoine net", color: "#4f46e5" }];
+  var flowData = series.labels.map(function(label, i){ return { label: label, revenus: series.income[i], depenses: series.expenses[i] }; });
+  var liqData = series.labels.map(function(label, i){ return { label: label, liquidites: series.liquidity[i] }; });
+  var invData = series.labels.map(function(label, i){ return { label: label, investissements: series.investments[i] }; });
+
+  var warnHtml = warnings.length ? '<div class="alert a-warn"><b>Données à compléter (' + warnings.length + ") :</b><ul>" +
+    warnings.slice(0, 8).map(function(w){ return "<li>" + esc(w) + "</li>"; }).join("") + "</ul></div>" : "";
+
+  var tradingTable = "";
+  if (tp.length){
+    var trows = "";
+    tp.forEach(function(t){
+      trows += "<tr><td><b>" + esc(t.name) + "</b></td><td>" + esc(t.currency) + "</td>" +
+        '<td class="r nowrap">' + fmtMoney(t.deposits, t.currency, 0) + '</td><td class="r nowrap">' + fmtMoney(t.withdrawals, t.currency, 0) + "</td>" +
+        '<td class="r nowrap"><b>' + fmtMoney(t.equity, t.currency, 0) + (t.equityIsOverride ? "" : ' <span class="badge b-amber" title="Equity non saisie : solde utilisé">*</span>') + "</b></td>" +
+        '<td class="r nowrap ' + (t.unrealized != null && t.unrealized >= 0 ? "pos" : "neg") + '">' + (t.unrealized == null ? "—" : fmtMoney(t.unrealized, t.currency, 0)) + "</td>" +
+        '<td class="r nowrap ' + (t.realized >= 0 ? "pos" : "neg") + '">' + fmtMoney(t.realized, t.currency, 0) + "</td>" +
+        '<td class="r">' + fmtPct(t.xirr == null ? null : roundMoney(t.xirr * 100, 1)) + "</td>" +
+        '<td class="r">' + fmtPct(t.twr == null ? null : roundMoney(t.twr * 100, 1)) + "</td></tr>";
+    });
+    tradingTable = '<div class="card"><div class="card-h"><div><h3>Comptes de trading et courtage</h3><div class="sub">Les dépôts ne sont pas des gains ; les retraits ne sont pas des pertes.</div></div><button class="btn btn-s no-print" id="btnGoTrading">Gérer →</button></div>' +
+      '<div class="card-b"><div class="tw"><table><thead><tr><th>Compte</th><th>Devise</th><th class="r">Dépôts</th><th class="r">Retraits</th><th class="r">Equity</th><th class="r">P&amp;L latent</th><th class="r">Réalisé net</th><th class="r">XIRR</th><th class="r">TWR</th></tr></thead><tbody>' + trows + "</tbody></table></div>" +
+      '<p class="note">* Equity non saisie : le solde de caisse est utilisé. Saisissez l\'equity réelle dans le module Trading pour inclure les positions latentes et alimenter le TWR.</p></div></div>';
+  }
+
+  sec.innerHTML =
+    '<div class="card no-print"><div class="card-b" style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">' +
+    '<div><h3 style="margin:0;font-size:.95rem">Vue personnelle unique</h3><div class="sub">Un seul espace : patrimoine personnel et comptes de trading réunis, sans double comptage.</div></div>' +
+    '<div style="display:flex;align-items:center;gap:8px"><span class="note" style="margin:0">Période</span>' + periodSel + "</div></div></div>" +
+    warnHtml +
+    '<div class="kpis">' + kpis + "</div>" +
+    '<div class="grid2">' +
+    '<div class="card"><div class="card-h"><h3>Évolution du patrimoine net</h3></div><div class="card-b">' + chartLine(nwData, nwSeries, { area: true }) + "</div></div>" +
+    '<div class="card"><div class="card-h"><h3>Revenus et dépenses mensuels</h3></div><div class="card-b">' + chartBars(flowData, [{ key: "revenus", name: "Revenus", color: "#059669" }, { key: "depenses", name: "Dépenses", color: "#dc2626" }]) + "</div></div>" +
+    '<div class="card"><div class="card-h"><h3>Répartition des actifs</h3></div><div class="card-b">' + chartPie(alloc) + "</div></div>" +
+    '<div class="card"><div class="card-h"><h3>Évolution des liquidités</h3></div><div class="card-b">' + chartLine(liqData, [{ key: "liquidites", name: "Liquidités", color: "#0891b2" }]) + "</div></div>" +
+    '<div class="card"><div class="card-h"><h3>Évolution des investissements</h3></div><div class="card-b">' + chartLine(invData, [{ key: "investissements", name: "Investissements", color: "#7c3aed" }]) + "</div></div>" +
+    "</div>" + tradingTable +
+    '<p class="note">Devise de consolidation : ' + esc(base) + ". Les transferts sont neutres (ni revenus, ni dépenses, ni gains) ; l\'equity saisie d\'un compte de trading remplace son solde de caisse, et les actifs rattachés à ce compte ne sont jamais comptés deux fois.</p>";
+
+  document.getElementById("dashPeriod").onchange = function(e){ dashState.period = e.target.value; RENDER.dashboard(); };
+  var g = document.getElementById("btnGoTrading");
+  if (g) g.onclick = function(){ showPage("trading"); };
+};
+
+// ============================================================
+// PAGE ACTIFS
+// ============================================================
+var assetFilter = "ACTIVE";
+RENDER.assets = function(){
+  var sec = document.getElementById("page-assets");
+  var aa = assetAnalytics().filter(function(x){
+    var a = DB.assets.find(function(y){ return y.id === x.id; });
+    return a && a.status === assetFilter;
+  });
+  var totValue = sumArr(aa.map(function(x){ return x.valueBase != null ? x.valueBase : x.cost; }));
+  var totCost = sumArr(aa.map(function(x){ return x.cost; }));
+  var totIn = sumArr(aa.map(function(x){ return x.cumIn; }));
+  var totOut = sumArr(aa.map(function(x){ return x.cumOut; }));
+  var rows = "";
+  aa.forEach(function(x){
+    rows += "<tr><td><b>" + esc(x.name) + "</b>" + (x.missing ? ' <span class="badge b-amber">sans valorisation</span>' : "") + "</td>" +
+      "<td>" + labelOf(ASSET_CATEGORIES, x.category) + "</td>" +
+      '<td class="r nowrap">' + fmtMoney(x.cost, x.currency, 0) + "</td>" +
+      '<td class="r nowrap"><b>' + (x.value == null ? "—" : fmtMoney(x.value, x.currency, 0)) + "</b></td>" +
+      '<td class="r nowrap ' + (x.gain != null && x.gain >= 0 ? "pos" : "neg") + '">' + (x.gain == null ? "—" : fmtMoney(x.gain, x.currency, 0) + ' <span class="note" style="display:inline">' + fmtPct(x.gainPct) + "</span>") + "</td>" +
+      '<td class="r">' + fmtPct(x.netYield) + '</td><td class="r pos">' + fmtMoney(x.cumIn, "", 0) + '</td><td class="r neg">' + fmtMoney(x.cumOut, "", 0) + "</td>" +
+      '<td><button class="link" data-id="' + x.id + '">Fiche →</button></td></tr>';
+  });
+  if (!aa.length) rows = '<tr><td colspan="9"><div class="empty">Aucun actif' + (assetFilter === "ACTIVE" ? ". Créez la fiche de votre premier actif (immobilier, véhicule, actions…)." : " pour ce statut.") + "</div></td></tr>";
+  sec.innerHTML =
+    '<div class="kpis">' +
+    kpi("Valeur actuelle", fmtCompact(totValue, DB.settings.baseCurrency), "Devise de base") +
+    kpi("Coût d'acquisition", fmtCompact(totCost, DB.settings.baseCurrency), "Prix + frais") +
+    kpi("Revenus cumulés", fmtCompact(totIn, DB.settings.baseCurrency), "Liés aux actifs", "pos") +
+    kpi("Charges cumulées", fmtCompact(totOut, DB.settings.baseCurrency), "Liées aux actifs", "neg") +
+    "</div>" +
+    '<div class="card"><div class="card-h"><div><h3>Actifs</h3><div class="sub">Fiche individuelle : acquisition, valorisation historique, revenus, charges, classifications économiques indépendantes.</div></div>' +
+    '<div class="row-actions"><select id="assetFilter" style="width:auto">' +
+    [["ACTIVE","Actifs"],["SOLD","Vendus"],["ARCHIVED","Archivés"]].map(function(o){ return '<option value="' + o[0] + '"' + (assetFilter === o[0] ? " selected" : "") + ">" + o[1] + "</option>"; }).join("") +
+    '</select><button class="btn btn-p" id="btnAddAsset">+ Actif</button></div></div>' +
+    '<div class="card-b"><div class="tw"><table><thead><tr><th>Actif</th><th>Catégorie</th><th class="r">Coût acq.</th><th class="r">Valeur</th><th class="r">± latente</th><th class="r">Rend. net</th><th class="r">Rev. cum.</th><th class="r">Charges cum.</th><th></th></tr></thead><tbody>' + rows + "</tbody></table></div>" +
+    '<p class="note">Un même bien peut être productif ET prendre de la valeur : les classifications sont indépendantes. Chaque réévaluation crée une nouvelle entrée d\'historique.</p></div></div>';
+  document.getElementById("assetFilter").onchange = function(e){ assetFilter = e.target.value; RENDER.assets(); };
+  document.getElementById("btnAddAsset").onclick = function(){ openAssetModal(null); };
+  sec.querySelectorAll("button[data-id]").forEach(function(b){ b.onclick = function(){ openAssetDetail(b.dataset.id); }; });
+};
+
+function openAssetModal(existing){
+  var e = existing || {};
+  var accOpts = [{ v: "", l: "—" }].concat(activeAccounts().map(function(a){ return { v: a.id, l: a.name }; }));
+  var body = '<div class="frow">' +
+    fInput("name", "Nom", "text", e.name, { required: true, placeholder: "Ex. Appartement Bastos" }) +
+    fSelect("category", "Catégorie", ASSET_CATEGORIES.map(function(c){ return { v: c[0], l: c[1] }; }), e.category || "REAL_ESTATE") +
+    fInput("subCategory", "Sous-catégorie", "text", e.subCategory, { placeholder: "Ex. 3 pièces, Toyota Hilux…" }) +
+    fInput("acquisitionDate", "Date d'acquisition", "date", e.acquisitionDate || todayISO()) +
+    fInput("purchasePrice", "Prix d'achat", "number", e.purchasePrice != null ? e.purchasePrice : "", { step: "any", required: true }) +
+    fSelect("currency", "Devise", DB.currencies.map(function(c){ return { v: c.code, l: c.code }; }), e.currency || DB.settings.baseCurrency) +
+    fInput("fees", "Frais d'acquisition", "number", e.fees != null ? e.fees : 0, { step: "any", hint: "Notaire, courtage, taxes…" }) +
+    (existing ? "" : fInput("initialValue", "Valeur actuelle initiale (optionnel)", "number", "", { step: "any" })) +
+    fSelect("financingMode", "Financement", [["CASH","Fonds propres"],["LOAN","Crédit"],["MIXED","Mixte"]].map(function(f){ return { v: f[0], l: f[1] }; }), e.financingMode || "CASH") +
+    fSelect("accountId", "Compte rattaché (optionnel)", accOpts, e.accountId || "", { hint: "Si l'actif vit dans un compte trading dont vous saisissez l'equity, il ne sera pas compté deux fois." }) +
+    "</div>" +
+    '<div class="section-title">Classification économique (dimensions indépendantes)</div><div class="frow">' +
+    fSelect("isProductive", "Productif ?", [{ v: "0", l: "Non productif" }, { v: "1", l: "Productif" }], e.isProductive ? "1" : "0") +
+    fSelect("incomeGenerating", "Trésorerie", [["GENERATES","Génère des revenus"],["CONSUMES","Consomme de la trésorerie"],["NEUTRAL","Neutre"]].map(function(f){ return { v: f[0], l: f[1] }; }), e.incomeGenerating || "NEUTRAL") +
+    fSelect("appreciation", "Tendance de valeur", [["APPRECIATING","Prend de la valeur"],["DEPRECIATING","Perd de la valeur"],["STABLE","Stable"],["UNKNOWN","Inconnue"]].map(function(f){ return { v: f[0], l: f[1] }; }), e.appreciation || "UNKNOWN") +
+    fSelect("liquidity", "Liquidité", [["LIQUID","Liquide"],["SEMI_LIQUID","Semi-liquide"],["ILLIQUID","Illiquide"]].map(function(f){ return { v: f[0], l: f[1] }; }), e.liquidity || "ILLIQUID") +
+    fSelect("role", "Rôle", [{ v: "PERSONAL", l: "Bien personnel" }, { v: "INVESTMENT", l: "Investissement" }], e.role || "PERSONAL") +
+    fInput("expectedIncome", "Revenu attendu (prévisionnel)", "number", e.expectedIncome != null ? e.expectedIncome : "", { step: "any" }) +
+    fSelect("incomeFrequency", "Fréquence du revenu attendu", [["MONTHLY","Mensuel"],["WEEKLY","Hebdomadaire"],["QUARTERLY","Trimestriel"],["ANNUAL","Annuel"]].map(function(f){ return { v: f[0], l: f[1] }; }), e.incomeFrequency || "MONTHLY") +
+    "</div>" + fTextarea("notes", "Description / notes", e.notes);
+  openModal(existing ? "Modifier l'actif" : "Nouvel actif", body, { wide: true });
+  modalFooter([
+    { label: "Annuler", variant: "s", onClick: closeModal },
+    { label: existing ? "Enregistrer" : "Créer l'actif", onClick: function(){
+      var name = gv("name");
+      if (!name){ toast("Le nom est requis.", "err"); return; }
+      var purchasePrice = gn("purchasePrice") || 0;
+      if (!(purchasePrice >= 0) || (purchasePrice === 0 && !existing)){ toast("Prix d'achat requis.", "err"); return; }
+      var currency = gv("currency");
+      var acqDate = gv("acquisitionDate") || todayISO();
+      var rate = rateFor(currency, Date.parse(acqDate), false);
+      if (rate == null){ toast("Aucun taux connu pour " + currency + ". Ajoutez-le dans Paramètres → Taux.", "err"); return; }
+      var data = {
+        name: name, category: gv("category"), subCategory: gv("subCategory") || null,
+        acquisitionDate: acqDate, purchasePrice: purchasePrice, fees: gn("fees") || 0, currency: currency,
+        financingMode: gv("financingMode"), accountId: gv("accountId") || null,
+        isProductive: gv("isProductive") === "1", incomeGenerating: gv("incomeGenerating"),
+        appreciation: gv("appreciation"), liquidity: gv("liquidity"), role: gv("role"),
+        expectedIncome: gv("expectedIncome") ? gn("expectedIncome") : null,
+        incomeFrequency: gv("expectedIncome") ? gv("incomeFrequency") : null,
+        notes: gv("notes") || null
+      };
+      if (existing){
+        Object.assign(existing, data);
+        toast("Actif mis à jour.");
+      } else {
+        var asset = Object.assign({ id: uid(), description: null, status: "ACTIVE", createdAt: todayISO() }, data);
+        DB.assets.push(asset);
+        var iv = gv("initialValue");
+        if (iv && isFinite(gn("initialValue"))){
+          DB.valuations.push({ id: uid(), assetId: asset.id, date: acqDate, value: gn("initialValue"), currency: currency, rateApplied: rate, valueBase: toBase(gn("initialValue"), rate), note: "Valorisation initiale" });
+        }
+        toast("Actif créé.");
+      }
+      saveDB(); closeModal(); rerender();
+    }}
+  ]);
+}
+
+function openAssetDetail(assetId){
+  var a = DB.assets.find(function(x){ return x.id === assetId; });
+  if (!a) return;
+  var an = assetAnalytics().find(function(x){ return x.id === assetId; });
+  var vals = DB.valuations.filter(function(v){ return v.assetId === assetId; }).sort(function(x,y){ return Date.parse(y.date) - Date.parse(x.date); });
+  var txs = DB.transactions.filter(function(t){ return t.assetId === assetId; }).sort(function(x,y){ return Date.parse(y.date) - Date.parse(x.date); });
+  var cur = a.currency;
+  var body =
+    '<div class="kpis" style="grid-template-columns:repeat(auto-fit,minmax(130px,1fr))">' +
+    kpi("Coût d'acquisition", fmtMoney(an.cost, cur, 0), "Prix + frais") +
+    kpi("Valeur actuelle", an.value == null ? "—" : fmtMoney(an.value, cur, 0), an.valueDate ? "Valorisé le " + fmtDate(an.valueDate) : "Non valorisé") +
+    kpi(an.gain != null && an.gain >= 0 ? "Plus-value latente" : "Moins-value latente", an.gain == null ? "—" : fmtMoney(an.gain, cur, 0), fmtPct(an.gainPct), an.gain != null && an.gain >= 0 ? "pos" : "neg") +
+    kpi("Revenus cumulés", fmtMoney(an.cumIn, "", 0), "Attendu : " + fmtMoney(an.expectedMonthly, "", 0) + "/mois", "pos") +
+    kpi("Charges cumulées", fmtMoney(an.cumOut, "", 0), "", "neg") +
+    kpi("Revenu net", fmtMoney(an.net, "", 0), "Coût de détention : " + fmtMoney(an.holdingCost, "", 0), an.net >= 0 ? "pos" : "neg") +
+    kpi("Rendements (12 mois)", fmtPct(an.grossYield) + " brut", "Net : " + fmtPct(an.netYield)) +
+    kpi("Contribution patrimoine", fmtPct(an.contribution), "") +
+    "</div>" +
+    '<div class="chips" style="margin-bottom:10px">' +
+    '<span class="chip">' + (a.isProductive ? "Productif" : "Non productif") + "</span>" +
+    '<span class="chip">' + esc(labelOf([["GENERATES","Génère des revenus"],["CONSUMES","Consomme de la trésorerie"],["NEUTRAL","Neutre"]], a.incomeGenerating)) + "</span>" +
+    '<span class="chip">' + esc(labelOf([["APPRECIATING","Prend de la valeur"],["DEPRECIATING","Perd de la valeur"],["STABLE","Stable"],["UNKNOWN","Tendance inconnue"]], a.appreciation)) + "</span>" +
+    '<span class="chip">' + esc(labelOf([["LIQUID","Liquide"],["SEMI_LIQUID","Semi-liquide"],["ILLIQUID","Illiquide"]], a.liquidity)) + "</span>" +
+    '<span class="chip">' + (a.role === "INVESTMENT" ? "Investissement" : "Bien personnel") + "</span>" +
+    '<span class="chip">' + esc(labelOf([["CASH","Fonds propres"],["LOAN","Crédit"],["MIXED","Mixte"]], a.financingMode)) + "</span>" +
+    "</div>" +
+    (an.missing ? '<div class="alert a-warn">Aucune valorisation : cet actif est compté au coût d\'acquisition. Réévaluez-le pour suivre sa valeur réelle.</div>' : "") +
+    '<div class="section-title">Historique des valorisations (jamais écrasées)</div><div class="tw"><table><thead><tr><th>Date</th><th class="r">Valeur</th><th class="r">Valeur (base)</th><th>Note</th></tr></thead><tbody>' +
+    (vals.length ? vals.map(function(v){
+      return "<tr><td>" + fmtDate(v.date) + '</td><td class="r nowrap"><b>' + fmtMoney(v.value, v.currency || cur) + '</b></td><td class="r">' + fmtMoney(v.valueBase, "") + "</td><td>" + esc(v.note || "—") + "</td></tr>";
+    }).join("") : '<tr><td colspan="4" class="empty">Aucune valorisation.</td></tr>') + "</tbody></table></div>" +
+    '<div class="section-title">Revenus et charges liés</div><div class="tw"><table><thead><tr><th>Date</th><th>Type</th><th>Libellé</th><th class="r">Montant</th></tr></thead><tbody>' +
+    (txs.length ? txs.map(function(t){
+      return "<tr><td>" + fmtDate(t.date) + "</td><td>" + (t.type === "INCOME" ? '<span class="badge b-green">Revenu</span>' : '<span class="badge b-red">Charge</span>') + "</td><td>" + esc(t.label) + '</td><td class="r nowrap ' + (t.type === "INCOME" ? "pos" : "neg") + '">' + fmtMoney(t.amount, t.currency) + "</td></tr>";
+    }).join("") : '<tr><td colspan="4" class="empty">Aucun flux lié.</td></tr>') + "</tbody></table></div>";
+  openModal(a.name, body, { wide: true });
+  modalFooter([
+    { label: "Fermer", variant: "s", onClick: closeModal },
+    { label: "+ Revenu lié", variant: "s", onClick: function(){ closeModal(); openTxModal("INCOME", null, a.id); } },
+    { label: "+ Charge liée", variant: "s", onClick: function(){ closeModal(); openTxModal("EXPENSE", null, a.id); } },
+    { label: "Réévaluer", onClick: function(){ closeModal(); openValuationModal(a); } },
+    { label: "Gérer", variant: "s", onClick: function(){ openAssetManageMenu(a); } }
+  ]);
+}
+
+function openAssetManageMenu(a){
+  var body = fSelect("status", "Statut", [{ v: "ACTIVE", l: "Actif" }, { v: "SOLD", l: "Vendu" }, { v: "ARCHIVED", l: "Archivé" }], a.status) +
+    (a.status === "SOLD" || true ? '<div class="frow">' + fInput("soldPrice", "Prix de vente (si vendu)", "number", a.soldPrice != null ? a.soldPrice : "", { step: "any" }) + fInput("soldDate", "Date de vente", "date", a.soldDate || "") + "</div>" : "") +
+    '<div class="row-actions" style="margin-top:10px"><button class="btn btn-s btn-x" id="amEdit">Modifier la fiche</button>' +
+    (DB.transactions.some(function(t){ return t.assetId === a.id; }) || DB.valuations.some(function(v){ return v.assetId === a.id; }) ? "" : '<button class="btn btn-d btn-x" id="amDel">Supprimer</button>') + "</div>";
+  openModal("Gérer — " + a.name, body);
+  modalFooter([
+    { label: "Annuler", variant: "s", onClick: closeModal },
+    { label: "Enregistrer le statut", onClick: function(){
+      var st = gv("status");
+      a.status = st;
+      a.soldPrice = gv("soldPrice") ? gn("soldPrice") : null;
+      a.soldDate = st === "SOLD" && gv("soldDate") ? gv("soldDate") : null;
+      saveDB(); closeModal(); rerender();
+      toast("Statut de l'actif mis à jour.");
+    }}
+  ]);
+  var ed = document.getElementById("amEdit");
+  if (ed) ed.onclick = function(){ closeModal(); openAssetModal(a); };
+  var del = document.getElementById("amDel");
+  if (del) del.onclick = function(){
+    if (!confirm("Supprimer définitivement cet actif et ses valorisations ?")) return;
+    DB.assets = DB.assets.filter(function(x){ return x.id !== a.id; });
+    DB.valuations = DB.valuations.filter(function(v){ return v.assetId !== a.id; });
+    saveDB(); closeModal(); rerender();
+    toast("Actif supprimé.");
+  };
+}
+
+function openValuationModal(a){
+  var body = '<p class="note" style="margin-top:0">Nouvelle entrée d\'historique — l\'ancienne valorisation est conservée.</p>' +
+    '<div class="frow">' + fInput("value", "Valeur actuelle (" + a.currency + ")", "number", "", { step: "any", required: true }) +
+    fInput("date", "Date de valorisation", "date", todayISO(), { required: true }) + "</div>" +
+    fTextarea("note", "Note (source de l'estimation)", "", { placeholder: "Ex. estimation agent immobilier, cote du marché…" });
+  openModal("Réévaluer — " + a.name, body);
+  modalFooter([
+    { label: "Annuler", variant: "s", onClick: closeModal },
+    { label: "Enregistrer la valorisation", onClick: function(){
+      var value = gn("value");
+      if (!(value > 0) && value !== 0){ toast("Valeur invalide.", "err"); return; }
+      var date = gv("date") || todayISO();
+      var rate = rateFor(a.currency, Date.parse(date), false);
+      if (rate == null){ toast("Aucun taux connu pour " + a.currency + ". Ajoutez-le dans Paramètres → Taux.", "err"); return; }
+      DB.valuations.push({ id: uid(), assetId: a.id, date: date, value: value, currency: a.currency, rateApplied: rate, valueBase: toBase(value, rate), note: gv("note") || "Réévaluation" });
+      saveDB(); closeModal(); rerender();
+      toast("Valorisation enregistrée dans l'historique.");
+    }}
+  ]);
+}
+
+// ============================================================
+// PAGE PASSIFS & DETTES
+// ============================================================
+RENDER.liabilities = function(){
+  var sec = document.getElementById("page-liabilities");
+  var base = DB.settings.baseCurrency;
+  var actives = DB.liabilities.filter(function(l){ return l.status === "ACTIVE"; });
+  var closed = DB.liabilities.filter(function(l){ return l.status !== "ACTIVE"; });
+  var rows = "";
+  actives.forEach(function(l){
+    var info = liabilityInfo(l);
+    rows += "<tr><td><b>" + esc(l.name) + "</b></td><td>" + esc(l.creditor) + "</td><td>" + labelOf(LIABILITY_CATEGORIES, l.category) + "</td>" +
+      '<td class="r nowrap">' + fmtMoney(l.initialAmount, l.currency, 0) + '</td><td class="r nowrap neg"><b>' + fmtMoney(info.remaining, l.currency, 0) + "</b></td>" +
+      '<td class="r nowrap pos">' + fmtMoney(info.capitalPaid, l.currency, 0) + '</td><td class="r nowrap warn">' + fmtMoney(info.interestPaid, l.currency, 0) + "</td>" +
+      '<td class="r">' + fmtPct(info.progress) + '</td><td><button class="link" data-id="' + l.id + '">Détail →</button></td></tr>';
+  });
+  if (!actives.length) rows = '<tr><td colspan="9"><div class="empty">Aucun passif en cours. Enregistrez vos crédits et emprunts pour suivre votre endettement réel.</div></td></tr>';
+  var closedHtml = "";
+  if (closed.length){
+    var crows = closed.map(function(l){
+      var info = liabilityInfo(l);
+      return "<tr><td><b>" + esc(l.name) + "</b></td><td>" + labelOf(LIABILITY_CATEGORIES, l.category) + '</td><td class="r pos">' + fmtMoney(info.capitalPaid, l.currency, 0) + '</td><td class="r warn">' + fmtMoney(info.interestPaid, l.currency, 0) + "</td><td>" + statusBadge(l.status) + '</td><td><button class="link" data-id="' + l.id + '">Détail</button></td></tr>';
+    }).join("");
+    closedHtml = '<div class="card"><div class="card-h"><h3>Passifs clôturés (' + closed.length + ')</h3></div><div class="card-b"><div class="tw"><table><thead><tr><th>Passif</th><th>Catégorie</th><th class="r">Capital remboursé</th><th class="r">Intérêts payés</th><th>Statut</th><th></th></tr></thead><tbody>' + crows + "</tbody></table></div></div></div>";
+  }
+  sec.innerHTML =
+    '<div class="card"><div class="card-h"><div><h3>Passifs &amp; dettes</h3><div class="sub">Crédits, emprunts et engagements — distinction stricte entre capital remboursé, intérêts et frais.</div></div>' +
+    '<button class="btn btn-p" id="btnAddLiability">+ Passif</button></div>' +
+    '<div class="card-b"><div class="tw"><table><thead><tr><th>Passif</th><th>Créancier</th><th>Catégorie</th><th class="r">Montant initial</th><th class="r">Restant dû</th><th class="r">Capital payé</th><th class="r">Intérêts payés</th><th class="r">Progression</th><th></th></tr></thead><tbody>' + rows + "</tbody></table></div>" +
+    '<p class="note"><b>Règle comptable :</b> le capital remboursé réduit la dette sans être une dépense de consommation ; seuls les intérêts et frais sont des charges financières.</p></div></div>' + closedHtml;
+  document.getElementById("btnAddLiability").onclick = function(){ openLiabilityModal(null); };
+  sec.querySelectorAll("button[data-id]").forEach(function(b){ b.onclick = function(){ openLiabilityDetail(b.dataset.id); }; });
+};
+
+function openLiabilityModal(existing){
+  var e = existing || {};
+  var assetOpts = [{ v: "", l: "—" }].concat(DB.assets.filter(function(a){ return a.status === "ACTIVE"; }).map(function(a){ return { v: a.id, l: a.name }; }));
+  var body = '<div class="frow">' +
+    fInput("name", "Nom", "text", e.name, { required: true, placeholder: "Ex. Crédit immobilier BICEC" }) +
+    fInput("creditor", "Créancier", "text", e.creditor, { required: true, placeholder: "Ex. BICEC, microfinance…" }) +
+    fSelect("category", "Catégorie", LIABILITY_CATEGORIES.map(function(c){ return { v: c[0], l: c[1] }; }), e.category || "PERSONAL") +
+    fInput("initialAmount", "Montant initial", "number", e.initialAmount != null ? e.initialAmount : "", { step: "any", required: true }) +
+    fSelect("currency", "Devise", DB.currencies.map(function(c){ return { v: c.code, l: c.code }; }), e.currency || DB.settings.baseCurrency) +
+    fInput("interestRate", "Taux d'intérêt annuel (%)", "number", e.interestRate != null ? e.interestRate : 0, { step: "any", hint: "0 si sans intérêt." }) +
+    fSelect("frequency", "Fréquence de remboursement", [["WEEKLY","Hebdomadaire"],["MONTHLY","Mensuel"],["QUARTERLY","Trimestriel"],["ANNUAL","Annuel"]].map(function(f){ return { v: f[0], l: f[1] }; }), e.frequency || "MONTHLY") +
+    fInput("startDate", "Date de début", "date", e.startDate || todayISO(), { required: true }) +
+    fInput("dueDate", "Date d'échéance", "date", e.dueDate || "") +
+    fInput("scheduledPayment", "Mensualité (périodicité)", "number", e.scheduledPayment != null ? e.scheduledPayment : "", { step: "any", hint: "Sert à l'échéancier théorique." }) +
+    fSelect("linkedAssetId", "Actif financé (optionnel)", assetOpts, e.linkedAssetId || "") +
+    (existing ? fSelect("status", "Statut", [{ v: "ACTIVE", l: "En cours" }, { v: "CLOSED", l: "Clôturé" }], e.status) : "") +
+    "</div>" + fTextarea("notes", "Notes", e.notes);
+  openModal(existing ? "Modifier le passif" : "Nouveau passif", body, { wide: true });
+  modalFooter([
+    { label: "Annuler", variant: "s", onClick: closeModal },
+    { label: existing ? "Enregistrer" : "Créer", onClick: function(){
+      var name = gv("name"), creditor = gv("creditor"), initialAmount = gn("initialAmount");
+      if (!name || !creditor){ toast("Nom et créancier requis.", "err"); return; }
+      if (!(initialAmount > 0)){ toast("Montant initial invalide.", "err"); return; }
+      var data = {
+        name: name, creditor: creditor, category: gv("category"),
+        initialAmount: initialAmount, currency: gv("currency"), interestRate: gn("interestRate") || 0,
+        startDate: gv("startDate") || todayISO(), dueDate: gv("dueDate") || null,
+        scheduledPayment: gv("scheduledPayment") ? gn("scheduledPayment") : null,
+        frequency: gv("frequency"), linkedAssetId: gv("linkedAssetId") || null, notes: gv("notes") || null
+      };
+      if (existing){ Object.assign(existing, data, { status: gv("status") || existing.status }); toast("Passif mis à jour."); }
+      else { DB.liabilities.push(Object.assign({ id: uid(), status: "ACTIVE" }, data)); toast("Passif créé."); }
+      saveDB(); closeModal(); rerender();
+    }}
+  ]);
+}
+
+function openLiabilityDetail(id){
+  var l = DB.liabilities.find(function(x){ return x.id === id; });
+  if (!l) return;
+  var info = liabilityInfo(l);
+  var pays = DB.payments.filter(function(p){ return p.liabilityId === id; }).sort(function(a,b){ return Date.parse(b.date) - Date.parse(a.date); });
+  var sched = amortizationOf(l);
+  var cur = l.currency;
+  var body =
+    '<div class="kpis" style="grid-template-columns:repeat(auto-fit,minmax(130px,1fr))">' +
+    kpi("Montant initial", fmtMoney(l.initialAmount, cur, 0), "") +
+    kpi("Capital restant dû", fmtMoney(info.remaining, cur, 0), "", "neg") +
+    kpi("Capital remboursé", fmtMoney(info.capitalPaid, cur, 0), fmtPct(info.progress), "pos") +
+    kpi("Intérêts payés", fmtMoney(info.interestPaid, cur, 0), "Charges financières", "warn") +
+    kpi("Frais payés", fmtMoney(info.feesPaid, cur, 0), "", "warn") +
+    "</div>" +
+    '<div class="alert a-warn">Le capital remboursé réduit le passif sans être une dépense de consommation. Seuls les intérêts et frais sont des charges financières.</div>' +
+    '<div class="section-title">Historique des paiements</div><div class="tw"><table><thead><tr><th>Date</th><th class="r">Capital</th><th class="r">Intérêts</th><th class="r">Frais</th><th>Compte débité</th><th></th></tr></thead><tbody>' +
+    (pays.length ? pays.map(function(p){
+      var acc = accountById(p.accountId);
+      return "<tr><td>" + fmtDate(p.date) + '</td><td class="r pos">' + fmtMoney(p.capital, cur, 0) + '</td><td class="r warn">' + fmtMoney(p.interest, cur, 0) + '</td><td class="r">' + fmtMoney(p.fees, cur, 0) + "</td><td>" + (acc ? esc(acc.name) : "—") +
+        '</td><td><button class="link d" data-pay="' + p.id + '">Suppr.</button></td></tr>';
+    }).join("") : '<tr><td colspan="6" class="empty">Aucun paiement enregistré.</td></tr>') + "</tbody></table></div>" +
+    '<div class="section-title">Échéancier théorique</div>' +
+    (sched.note ? '<p class="note">' + esc(sched.note) + "</p>" : '<div class="tw" style="max-height:260px;overflow-y:auto"><table><thead><tr><th>#</th><th>Date</th><th class="r">Intérêts</th><th class="r">Capital</th><th class="r">Restant dû</th></tr></thead><tbody>' +
+      sched.rows.map(function(r){
+        return "<tr><td>" + r.i + "</td><td>" + fmtDate(r.date) + '</td><td class="r warn">' + fmtMoney(r.interest, cur, 0) + "</td><td class=\"r\">" + fmtMoney(r.capital, cur, 0) + '</td><td class="r"><b>' + fmtMoney(r.remaining, cur, 0) + "</b></td></tr>";
+      }).join("") + "</tbody></table></div>");
+  openModal(l.name + " — " + l.creditor, body, { wide: true });
+  document.querySelectorAll("button[data-pay]").forEach(function(b){
+    b.onclick = function(){
+      if (!confirm("Supprimer ce paiement ? Les soldes seront recalculés.")) return;
+      DB.payments = DB.payments.filter(function(p){ return p.id !== b.dataset.pay; });
+      saveDB(); closeModal(); rerender();
+      toast("Paiement supprimé.");
+    };
+  });
+  modalFooter([
+    { label: "Fermer", variant: "s", onClick: closeModal },
+    { label: "Modifier", variant: "s", onClick: function(){ closeModal(); openLiabilityModal(l); } },
+    { label: "+ Paiement", onClick: function(){ closeModal(); openPaymentModal(l); } }
+  ]);
+}
+
+function openPaymentModal(l){
+  var accs = activeAccounts().filter(function(a){ return a.currency === l.currency; });
+  var accOpts = [{ v: "", l: "— Aucun (hors caisse) —" }].concat(accs.map(function(a){ return { v: a.id, l: a.name }; }));
+  var body = '<div class="frow">' +
+    fInput("capital", "Capital remboursé (" + l.currency + ")", "number", "", { step: "any", hint: "Réduit la dette — pas une dépense de consommation." }) +
+    fInput("interest", "Intérêts payés (" + l.currency + ")", "number", "", { step: "any", hint: "Charges financières." }) +
+    fInput("fees", "Frais payés (" + l.currency + ")", "number", "", { step: "any" }) +
+    fInput("date", "Date", "date", todayISO(), { required: true }) +
+    "</div>" +
+    fSelect("accountId", "Compte débité", accOpts, accs.length ? accs[0].id : "", { hint: "Le total (capital + intérêts + frais) sera débité de ce compte." }) +
+    fTextarea("notes", "Notes", "");
+  openModal("Paiement — " + l.name, body);
+  modalFooter([
+    { label: "Annuler", variant: "s", onClick: closeModal },
+    { label: "Enregistrer le paiement", onClick: function(){
+      var capital = gn("capital") || 0, interest = gn("interest") || 0, fees = gn("fees") || 0;
+      var total = capital + interest + fees;
+      if (total <= 0){ toast("Le paiement doit comprendre au moins un montant.", "err"); return; }
+      var date = gv("date") || todayISO();
+      var rate = rateFor(l.currency, Date.parse(date), false);
+      if (rate == null){ toast("Aucun taux connu pour " + l.currency + ". Ajoutez-le dans Paramètres → Taux.", "err"); return; }
+      var accountId = gv("accountId") || null;
+      if (accountId && accountById(accountId).currency !== l.currency){ toast("Le compte doit être dans la devise du passif (" + l.currency + ").", "err"); return; }
+      DB.payments.push({ id: uid(), liabilityId: l.id, date: date, capital: capital, interest: interest, fees: fees, currency: l.currency, rateApplied: rate, accountId: accountId, notes: gv("notes") || null });
+      if (liabilityRemaining(l.id, Date.now()) <= 0.005){
+        l.status = "CLOSED";
+        toast("Capital totalement remboursé : passif clôturé automatiquement.");
+      } else toast("Paiement enregistré.");
+      saveDB(); closeModal(); rerender();
+    }}
+  ]);
+}
+
+// ============================================================
+// PAGE TRADING
+// ============================================================
+RENDER.trading = function(){
+  var sec = document.getElementById("page-trading");
+  var tp = tradingPerf();
+  var FIN_CATS = { STOCKS: 1, BONDS: 1, ETF: 1, GOLD: 1, BUSINESS: 1 };
+  var placements = DB.assets.filter(function(a){ return a.status === "ACTIVE" && FIN_CATS[a.category]; });
+  var totEquity = sumArr(tp.map(function(t){ return t.equity; }));
+  var trows = "";
+  tp.forEach(function(t){
+    trows += "<tr><td><b>" + esc(t.name) + "</b>" + (t.equityIsOverride ? "" : ' <span class="badge b-amber" title="Equity non saisie : solde utilisé">*</span>') + "</td>" +
+      "<td>" + esc(t.currency) + "</td>" +
+      '<td class="r nowrap">' + fmtMoney(t.deposits, t.currency, 0) + '</td><td class="r nowrap">' + fmtMoney(t.withdrawals, t.currency, 0) + "</td>" +
+      '<td class="r nowrap">' + fmtMoney(t.balance, t.currency, 0) + '</td><td class="r nowrap"><b>' + fmtMoney(t.equity, t.currency, 0) + "</b></td>" +
+      '<td class="r nowrap ' + (t.unrealized != null && t.unrealized >= 0 ? "pos" : "neg") + '">' + (t.unrealized == null ? "—" : fmtMoney(t.unrealized, t.currency, 0)) + "</td>" +
+      '<td class="r nowrap ' + (t.realized >= 0 ? "pos" : "neg") + '">' + fmtMoney(t.realized, t.currency, 0) + '</td><td class="r nowrap warn">' + fmtMoney(t.fees, t.currency, 0) + "</td>" +
+      '<td class="r">' + fmtPct(t.xirr == null ? null : roundMoney(t.xirr * 100, 1)) + "</td>" +
+      '<td class="r">' + fmtPct(t.twr == null ? null : roundMoney(t.twr * 100, 1)) + (t.twr == null ? ' <span class="note" style="display:inline" title="Nécessite au moins 2 instantanés d\'equity">ⓘ</span>' : "") + "</td>" +
+      '<td><div class="row-actions"><button class="link" data-act="eq" data-id="' + t.id + '">Equity…</button>' +
+      '<button class="link" data-act="acc" data-id="' + t.id + '">Compte</button></div></td></tr>';
+  });
+  if (!tp.length) trows = '<tr><td colspan="12"><div class="empty">Aucun compte de trading. Créez un compte de type « Compte de trading », « Compte de courtage » ou « Portefeuille d\'investissement ».</div></td></tr>';
+  var prows = "";
+  placements.forEach(function(p){
+    var an = assetAnalytics().find(function(x){ return x.id === p.id; });
+    if (!an) return;
+    prows += "<tr><td><b>" + esc(p.name) + "</b></td><td>" + labelOf(ASSET_CATEGORIES, p.category) + "</td>" +
+      '<td class="r nowrap">' + fmtMoney(an.cost, p.currency, 0) + "</td>" +
+      '<td class="r nowrap"><b>' + (an.value == null ? "—" : fmtMoney(an.value, p.currency, 0)) + "</b></td>" +
+      '<td class="r nowrap ' + (an.gain != null && an.gain >= 0 ? "pos" : "neg") + '">' + (an.gain == null ? "—" : fmtMoney(an.gain, p.currency, 0)) + '</td><td><button class="link" data-id="' + p.id + '">Fiche</button></td></tr>';
+  });
+  if (!placements.length) prows = '<tr><td colspan="6"><div class="empty">Aucun placement long terme rattaché aux comptes de trading (obligations, ETF, participations…).</div></td></tr>';
+  sec.innerHTML =
+    '<div class="alert a-ok">Page optionnelle dédiée aux <b>comptes de trading, de courtage et portefeuilles d\'investissement</b>. Les dépôts ne sont pas des gains, les retraits ne sont pas des pertes : les virements vers ces comptes restent des transferts neutres.</div>' +
+    '<div class="card"><div class="card-h"><div><h3>Comptes de trading et courtage</h3><div class="sub">Performance réalisée, latente, XIRR (Money-Weighted) et TWR (Time-Weighted) — total equity : ' + fmtCompact(totEquity, DB.settings.baseCurrency) + "</div></div>" +
+    '<div class="row-actions"><button class="btn btn-s" id="btnFlow">⇄ Dépôt / retrait</button><button class="btn btn-p" id="btnAddTrading">+ Compte de trading</button></div></div>' +
+    '<div class="card-b"><div class="tw"><table><thead><tr><th>Compte</th><th>Devise</th><th class="r">Dépôts</th><th class="r">Retraits</th><th class="r">Solde caisse</th><th class="r">Equity</th><th class="r">P&amp;L latent</th><th class="r">Réalisé net</th><th class="r">Frais</th><th class="r">XIRR</th><th class="r">TWR</th><th></th></tr></thead><tbody>' + trows + "</tbody></table></div>" +
+    '<p class="note">Saisissez régulièrement l\'equity réelle (bouton « Equity… ») : chaque saisie crée un instantané qui alimente le TWR et l\'historique.</p></div></div>' +
+    '<div class="card"><div class="card-h"><h3>Placements financiers de long terme</h3><div class="sub">Actions, obligations, ETF, or et participations (catégories financières)</div><button class="btn btn-s no-print" id="btnAddPlacement">+ Placement</button></div>' +
+    '<div class="card-b"><div class="tw"><table><thead><tr><th>Placement</th><th>Catégorie</th><th class="r">Capital investi</th><th class="r">Valeur</th><th class="r">± latente</th><th></th></tr></thead><tbody>' + prows + "</tbody></table></div></div></div>";
+  document.getElementById("btnAddTrading").onclick = function(){ openTradingAccountModal(); };
+  document.getElementById("btnFlow").onclick = openTransferModal;
+  document.getElementById("btnAddPlacement").onclick = function(){ openAssetModal(null); };
+  sec.querySelectorAll("button[data-act]").forEach(function(b){
+    b.onclick = function(){
+      if (b.dataset.act === "eq") openEquityModal(accountById(b.dataset.id));
+      else showPage("accounts");
+    };
+  });
+  sec.querySelectorAll("button[data-id]").forEach(function(b){
+    b.onclick = function(){ openAssetDetail(b.dataset.id); };
+  });
+};
+
+function openTradingAccountModal(){
+  var body = '<div class="frow">' +
+    fInput("name", "Nom du compte", "text", "", { required: true, placeholder: "Ex. Exness Standard" }) +
+    fInput("institution", "Courtier / marché", "text", "", { placeholder: "Ex. Exness, Interactive Brokers…" }) +
+    fSelect("type", "Type", [["TRADING","Compte de trading"],["BROKERAGE","Compte de courtage"],["INVESTMENT","Portefeuille d'investissement"]].map(function(f){ return { v: f[0], l: f[1] }; }), "TRADING") +
+    fSelect("currency", "Devise", DB.currencies.map(function(c){ return { v: c.code, l: c.code }; }), "USD") +
+    fInput("initialBalance", "Capital initial", "number", "0", { step: "any" }) +
+    "</div>" + fTextarea("notes", "Notes", "");
+  openModal("Nouveau compte de trading", body);
+  modalFooter([
+    { label: "Annuler", variant: "s", onClick: closeModal },
+    { label: "Créer", onClick: function(){
+      var name = gv("name");
+      if (!name){ toast("Le nom est requis.", "err"); return; }
+      DB.accounts.push({ id: uid(), name: name, institution: gv("institution") || null, type: gv("type"), currency: gv("currency"), initialBalance: gn("initialBalance") || 0, equity: null, equityNote: null, equityHistory: [], status: "ACTIVE", notes: gv("notes") || null, createdAt: todayISO() });
+      saveDB(); closeModal(); rerender();
+      toast("Compte de trading créé.");
+    }}
+  ]);
+}
+
+// ============================================================
+// PAGE OBJECTIFS
+// ============================================================
+RENDER.objectives = function(){
+  var sec = document.getElementById("page-objectives");
+  var rows = "";
+  DB.objectives.forEach(function(o){
+    var p = objectiveProgress(o);
+    var pct = Math.min(100, Math.max(0, p.pct || 0));
+    rows += "<tr><td><b>" + esc(o.name) + "</b>" + (p.achieved ? ' <span class="badge b-green">Atteint ✓</span>' : "") + "</td>" +
+      "<td>" + labelOf(OBJECTIVE_TYPES, o.type) + "</td>" +
+      '<td class="r nowrap">' + fmtMoney(o.startAmount, o.currency, 0) + "</td>" +
+      '<td class="r nowrap"><b>' + fmtMoney(p.current, o.currency, 0) + "</b></td>" +
+      '<td class="r nowrap">' + fmtMoney(o.targetAmount, o.currency, 0) + "</td>" +
+      '<td style="min-width:140px"><div class="pbar"><i class="' + (p.achieved ? "done" : "") + '" style="width:' + pct.toFixed(0) + '%"></i></div><div class="note">' + fmtPct(p.pct, 0) + (o.dueDate ? " · échéance " + fmtDate(o.dueDate) : "") + "</div></td>" +
+      '<td><div class="row-actions"><button class="link" data-act="edit" data-id="' + o.id + '">Modif.</button><button class="link d" data-act="del" data-id="' + o.id + '">Suppr.</button></div></td></tr>';
+  });
+  if (!DB.objectives.length) rows = '<tr><td colspan="7"><div class="empty">Aucun objectif. Créez un patrimoine cible, un revenu passif visé, une réserve de sécurité…</div></td></tr>';
+  sec.innerHTML =
+    '<div class="card"><div class="card-h"><div><h3>Objectifs financiers</h3><div class="sub">Progression calculée en direct depuis vos données réelles.</div></div>' +
+    '<button class="btn btn-p" id="btnAddObjective">+ Objectif</button></div>' +
+    '<div class="card-b"><div class="tw"><table><thead><tr><th>Objectif</th><th>Type</th><th class="r">Départ</th><th class="r">Actuel</th><th class="r">Cible</th><th>Progression</th><th></th></tr></thead><tbody>' + rows + "</tbody></table></div>" +
+    '<p class="note">Les projections sont des estimations arithmétiques, pas des garanties.</p></div></div>';
+  document.getElementById("btnAddObjective").onclick = function(){ openObjectiveModal(null); };
+  sec.querySelectorAll("button[data-act]").forEach(function(b){
+    b.onclick = function(){
+      var id = b.dataset.id;
+      if (b.dataset.act === "edit") openObjectiveModal(DB.objectives.find(function(o){ return o.id === id; }));
+      else {
+        if (!confirm("Supprimer cet objectif ?")) return;
+        DB.objectives = DB.objectives.filter(function(o){ return o.id !== id; });
+        saveDB(); rerender();
+        toast("Objectif supprimé.");
+      }
+    };
+  });
+};
+
+function openObjectiveModal(existing){
+  var e = existing || {};
+  var body = '<div class="frow">' +
+    fInput("name", "Nom", "text", e.name, { required: true, placeholder: "Ex. Patrimoine net 50 M FCFA" }) +
+    fSelect("type", "Type", OBJECTIVE_TYPES.map(function(t){ return { v: t[0], l: t[1] }; }), e.type || "NET_WORTH") +
+    fInput("startAmount", "Montant initial", "number", e.startAmount != null ? e.startAmount : 0, { step: "any", hint: "Niveau de départ (ex. dette actuelle pour une réduction d'endettement)." }) +
+    fInput("targetAmount", "Montant cible", "number", e.targetAmount != null ? e.targetAmount : "", { step: "any", required: true }) +
+    fSelect("currency", "Devise", DB.currencies.map(function(c){ return { v: c.code, l: c.code }; }), e.currency || DB.settings.baseCurrency) +
+    fInput("startDate", "Date de début", "date", e.startDate || todayISO()) +
+    fInput("dueDate", "Échéance (optionnel)", "date", e.dueDate || "") +
+    "</div>" + fTextarea("notes", "Notes", e.notes);
+  openModal(existing ? "Modifier l'objectif" : "Nouvel objectif financier", body);
+  modalFooter([
+    { label: "Annuler", variant: "s", onClick: closeModal },
+    { label: existing ? "Enregistrer" : "Créer", onClick: function(){
+      var name = gv("name"), target = gn("targetAmount");
+      if (!name){ toast("Le nom est requis.", "err"); return; }
+      if (!isFinite(target)){ toast("Montant cible invalide.", "err"); return; }
+      var data = {
+        name: name, type: gv("type"), startAmount: gn("startAmount") || 0, targetAmount: target,
+        currency: gv("currency"), startDate: gv("startDate") || todayISO(), dueDate: gv("dueDate") || null, notes: gv("notes") || null
+      };
+      if (existing){ Object.assign(existing, data); toast("Objectif mis à jour."); }
+      else { DB.objectives.push(Object.assign({ id: uid(), status: "ACTIVE" }, data)); toast("Objectif créé."); }
+      saveDB(); closeModal(); rerender();
+    }}
+  ]);
+}
+
+// ============================================================
+// PAGE RAPPORTS
+// ============================================================
+var repState = { type: "monthly", month: todayISO().slice(0, 7), year: new Date().getUTCFullYear(), last: null, lastKind: null };
+function repRow(label, value, tone){
+  return '<div style="display:flex;justify-content:space-between;gap:10px;border-bottom:1px solid var(--border);padding:6px 0;font-size:.85rem"><span style="color:var(--muted)">' + label + '</span><span class="nowrap" style="font-weight:700;font-variant-numeric:tabular-nums;' + (tone ? "color:var(--" + tone + ")" : "") + '">' + value + "</span></div>";
+}
+RENDER.reports = function(){
+  var sec = document.getElementById("page-reports");
+  var controls = '<div class="card no-print"><div class="card-b" style="display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap">' +
+    '<label style="margin:0"><span class="lab">Type de rapport</span><select id="repType" style="width:auto"><option value="monthly"' + (repState.type === "monthly" ? " selected" : "") + ">Rapport mensuel</option><option value=\"annual\"" + (repState.type === "annual" ? " selected" : "") + ">Rapport annuel</option></select></label>" +
+    '<label style="margin:0" id="repPeriodWrap"></label>' +
+    '<button class="btn btn-p" id="repGen">Générer</button>' +
+    '<button class="btn btn-s" id="repJson">Exporter JSON</button><button class="btn btn-s" id="repCsv">Exporter CSV</button><button class="btn btn-s" id="repPrint">Imprimer / PDF</button>' +
+    "</div></div><div id=\"repArea\"></div>";
+  sec.innerHTML = '<div class="card"><div class="card-h"><div><h3>Rapports financiers</h3><div class="sub">Bilans périodiques générés exclusivement à partir de vos données enregistrées. PDF via l\'impression du navigateur.</div></div></div><div class="card-b">' +
+    '<div class="alert a-warn">⚠ Pensez à télécharger régulièrement votre <b>sauvegarde JSON</b> (Paramètres → Sauvegarde) : les données vivent dans ce navigateur.</div>' + controls + "</div></div>";
+  function periodWrap(){
+    var w = document.getElementById("repPeriodWrap");
+    if (repState.type === "monthly")
+      w.innerHTML = '<span class="lab">Mois</span><input type="month" id="repMonth" value="' + esc(repState.month) + '" style="width:auto">';
+    else
+      w.innerHTML = '<span class="lab">Année</span><input type="number" id="repYear" value="' + repState.year + '" min="1990" max="2100" style="width:auto">';
+    var m = document.getElementById("repMonth");
+    if (m) m.onchange = function(e){ repState.month = e.target.value; };
+    var y = document.getElementById("repYear");
+    if (y) y.onchange = function(e){ repState.year = +e.target.value; };
+  }
+  periodWrap();
+  document.getElementById("repType").onchange = function(e){ repState.type = e.target.value; RENDER.reports(); };
+  document.getElementById("repGen").onclick = function(){ generateReport(); };
+  document.getElementById("repJson").onclick = function(){ if (repState.last) download("pwm-rapport-" + (repState.lastKind === "monthly" ? repState.last.ym : repState.last.year) + ".json", JSON.stringify(repState.last, null, 2), "application/json"); };
+  document.getElementById("repCsv").onclick = function(){ exportReportCsv(); };
+  document.getElementById("repPrint").onclick = function(){ window.print(); };
+  if (repState.last) showReport(repState.last, repState.lastKind);
+  else generateReport();
+
+  function generateReport(){
+    if (repState.type === "monthly"){
+      if (!/^\d{4}-\d{2}$/.test(repState.month)){ toast("Mois invalide.", "err"); return; }
+      repState.last = reportMonthly(repState.month);
+    } else {
+      if (!repState.year || repState.year < 1900){ toast("Année invalide.", "err"); return; }
+      repState.last = reportAnnual(repState.year);
+    }
+    repState.lastKind = repState.type;
+    showReport(repState.last, repState.lastKind);
+  }
+  function exportReportCsv(){
+    if (!repState.last) return;
+    var r = repState.last, rows = [];
+    if (repState.lastKind === "monthly"){
+      var r = repState.last;
+      rows = [["Indicateur", "Valeur (" + DB.settings.baseCurrency + ")"],
+        ["Total actifs", r.bilan.totalAssets], ["Total passifs", r.bilan.totalLiabilities], ["Patrimoine net consolidé", r.bilan.netWorth],
+        ["Comptes de trading", r.bilan.tradingValue], ["Liquidités", r.bilan.cashAll],
+        ["Revenus du mois", r.flows.income], ["Dont revenus passifs", r.flows.passive],
+        ["Dépenses de consommation", r.flows.expense], ["Charges financières", r.flows.charges], ["Capital remboursé", r.flows.capitalRepaid],
+        ["Décaissements totaux", r.flows.cashOut], ["Cash-flow net", r.flows.net],
+        ["Patrimoine net mois précédent", r.bilanPrev.netWorth], ["Δ Patrimoine net", r.deltas.netWorth]];
+      r.flows.byCatIn.forEach(function(c){ rows.push(["Revenu — " + catLabel("INCOME", c[0]), c[1]]); });
+      r.flows.byCatOut.forEach(function(c){ rows.push(["Dépense — " + catLabel("EXPENSE", c[0]), c[1]]); });
+    } else {
+      rows = [["Indicateur", "Valeur (" + DB.settings.baseCurrency + ")"],
+        ["Année", r.year],
+        ["Patrimoine net au début", r.start.netWorth], ["Patrimoine net à la fin", r.end.netWorth],
+        ["Croissance", roundMoney(r.end.netWorth - r.start.netWorth, 2)],
+        ["Total actifs (fin)", r.end.totalAssets], ["Total passifs (fin)", r.end.totalLiabilities],
+        ["Revenus de l'année", r.flows.income], ["Dont revenus passifs", r.flows.passive],
+        ["Dépenses de consommation", r.flows.expense], ["Charges financières", r.flows.charges],
+        ["Capital remboursé", r.flows.capitalRepaid], ["Cash-flow net", r.flows.net],
+        ["Capital remboursé (paiements)", r.repaid], ["Intérêts + frais payés", r.interestPaid]];
+      r.series.labels.forEach(function(label, i){
+        rows.push(["Mois " + label + " — revenus", r.series.income[i]]);
+        rows.push(["Mois " + label + " — dépenses", r.series.expenses[i]]);
+        rows.push(["Mois " + label + " — patrimoine net", r.series.netWorth[i]]);
+      });
+    }
+    downloadCSV("pwm-rapport-" + (repState.lastKind === "monthly" ? r.ym : r.year) + ".csv", rows);
+  }
+  function showReport(r, kind){
+    var area = document.getElementById("repArea");
+    var base = DB.settings.baseCurrency;
+    if (kind === "monthly"){
+      var f = r.flows;
+      area.innerHTML = '<div class="grid2">' +
+        '<div class="card"><div class="card-h"><h3>Bilan patrimonial — ' + fmtDate(r.ym + "-01") + "</h3></div><div class=\"card-b\">" +
+        repRow("Total des actifs", fmtMoney(r.bilan.totalAssets, base, 0)) +
+        repRow("Total des passifs", fmtMoney(r.bilan.totalLiabilities, base, 0)) +
+        repRow("Patrimoine net consolidé", fmtMoney(r.bilan.netWorth, base, 0), "accent") +
+        repRow("Comptes de trading (valeur nette)", fmtMoney(r.bilan.tradingValue, base, 0)) +
+        repRow("Liquidités", fmtMoney(r.bilan.cashAll, base, 0)) +
+        '<div class="section-title">Comparaison avec le mois précédent</div>' +
+        repRow("Patrimoine net précédent", fmtMoney(r.bilanPrev.netWorth, base, 0)) +
+        repRow("Δ Patrimoine net", fmtMoney(r.deltas.netWorth, base, 0), r.deltas.netWorth >= 0 ? "success" : "danger") +
+        repRow("Δ Revenus", fmtMoney(r.deltas.income, base, 0)) +
+        repRow("Δ Dépenses", fmtMoney(r.deltas.expenses, base, 0)) +
+        "</div></div>" +
+        '<div class="card"><div class="card-h"><h3>Revenus et dépenses du mois</h3></div><div class="card-b">' +
+        repRow("Revenus encaissés", fmtMoney(f.income, base, 0), "success") +
+        repRow("Dont revenus passifs", fmtMoney(f.passive, base, 0)) +
+        repRow("Revenus attendus (non encaissés)", fmtMoney(f.expected, base, 0)) +
+        f.byCatIn.map(function(c){ return repRow("— " + catLabel("INCOME", c[0]), fmtMoney(c[1], base, 0)); }).join("") +
+        repRow("Dépenses de consommation", fmtMoney(f.expense, base, 0), "danger") +
+        f.byCatOut.map(function(c){ return repRow("— " + catLabel("EXPENSE", c[0]), fmtMoney(c[1], base, 0)); }).join("") +
+        repRow("Charges financières (intérêts + frais)", fmtMoney(f.charges, base, 0)) +
+        repRow("Capital remboursé (réduit la dette)", fmtMoney(f.capitalRepaid, base, 0)) +
+        repRow("Décaissements totaux", fmtMoney(f.cashOut, base, 0)) +
+        repRow("Cash-flow net", fmtMoney(f.net, base, 0), f.net >= 0 ? "success" : "danger") +
+        repRow("Taux d'épargne", fmtPct(safeDiv(f.net, f.income) == null ? null : roundMoney(safeDiv(f.net, f.income) * 100, 1))) +
+        "</div></div></div>" +
+        (r.bilan.warnings.length ? '<div class="alert a-warn"><b>Données à compléter :</b><ul>' + r.bilan.warnings.slice(0, 6).map(function(w){ return "<li>" + esc(w) + "</li>"; }).join("") + "</ul></div>" : "");
+    } else {
+      var growth = roundMoney(r.end.netWorth - r.start.netWorth, 2);
+      area.innerHTML = '<div class="grid2">' +
+        '<div class="card"><div class="card-h"><h3>Patrimoine — année ' + r.year + "</h3></div><div class=\"card-b\">" +
+        repRow("Patrimoine net au début de l'année", fmtMoney(r.start.netWorth, base, 0)) +
+        repRow("Patrimoine net à la fin de l'année", fmtMoney(r.end.netWorth, base, 0), "accent") +
+        repRow("Croissance du patrimoine", fmtMoney(growth, base, 0), growth >= 0 ? "success" : "danger") +
+        repRow("Total actifs (fin)", fmtMoney(r.end.totalAssets, base, 0)) +
+        repRow("Total passifs (fin)", fmtMoney(r.end.totalLiabilities, base, 0)) +
+        repRow("Capital remboursé sur l'année", fmtMoney(r.repaid, base, 0), "success") +
+        repRow("Intérêts + frais payés", fmtMoney(r.interestPaid, base, 0), "warning") +
+        "</div></div>" +
+        '<div class="card"><div class="card-h"><h3>Revenus, dépenses et épargne</h3></div><div class="card-b">' +
+        repRow("Revenus encaissés", fmtMoney(r.flows.income, base, 0), "success") +
+        repRow("Dont revenus passifs", fmtMoney(r.flows.passive, base, 0)) +
+        repRow("Dépenses de consommation", fmtMoney(r.flows.expense, base, 0), "danger") +
+        repRow("Charges financières", fmtMoney(r.flows.charges, base, 0)) +
+        repRow("Cash-flow net", fmtMoney(r.flows.net, base, 0), r.flows.net >= 0 ? "success" : "danger") +
+        repRow("Taux d'épargne", fmtPct(safeDiv(r.flows.net, r.flows.income) == null ? null : roundMoney(safeDiv(r.flows.net, r.flows.income) * 100, 1))) +
+        "</div></div></div>" +
+        '<div class="card"><div class="card-h"><h3>Évolution mensuelle</h3></div><div class="card-b">' +
+        chartLine(r.series.labels.map(function(label, i){ return { label: label, netWorth: r.series.netWorth[i] }; }), [{ key: "netWorth", name: "Patrimoine net", color: "#4f46e5" }], { area: true }) +
+        "</div></div>";
+    }
+  }
+};
+
+// ============================================================
+// PAGE PARAMÈTRES — devises, taux, SAUVEGARDES
+// ============================================================
+RENDER.settings = function(){
+  var sec = document.getElementById("page-settings");
+  var base = DB.settings.baseCurrency;
+  var hist = loadHistory();
+  var histRows = hist.length ? hist.map(function(h, i){
+    return "<tr><td>" + fmtDate(h.date) + " " + new Date(h.date).toLocaleTimeString("fr-FR") + '</td><td class="r nowrap">' + Math.round(h.size / 1024) + " Ko</td>" +
+      '<td><button class="link" data-hist="' + i + '">Restaurer</button></td></tr>';
+  }).join("") : '<tr><td colspan="3" class="empty">Aucun instantané local encore créé (un instantané quotidien est fait automatiquement dès la première saisie).</td></tr>';
+  var latestRates = {};
+  DB.rates.forEach(function(r){ if (!latestRates[r.currency] || r.date > latestRates[r.currency].date) latestRates[r.currency] = r; });
+  var rateRows = Object.keys(latestRates).sort().map(function(code){
+    var r = latestRates[code];
+    var count = DB.rates.filter(function(x){ return x.currency === code; }).length;
+    return "<tr><td><b>" + esc(code) + "</b></td><td class=\"r nowrap\">" + (r.rate === 1 ? "1 (base)" : r.rate.toLocaleString("fr-FR", { maximumFractionDigits: 6 })) + "</td><td>" + fmtDate(r.date) + "</td><td>" + count + " entrée(s) historisée(s)</td></tr>";
+  }).join("");
+  if (!rateRows) rateRows = '<tr><td colspan="4" class="empty">Aucun taux : ajoutez le taux de chaque devise que vous utilisez (en ' + esc(base) + " par 1 unité).</td></tr>";
+  sec.innerHTML =
+    '<div class="grid2">' +
+    '<div class="card"><div class="card-h"><h3>Devise de consolidation</h3></div><div class="card-b">' +
+    fSelectStatic("baseCur", DB.currencies.map(function(c){ return { v: c.code, l: c.code + " — " + c.name }; }), base) +
+    '<button class="btn btn-p btn-x" id="saveBase">Appliquer</button>' +
+    '<p class="note">Toutes les contre-valeurs sont exprimées dans cette devise. Les montants d\'origine ne sont jamais convertis définitivement.</p></div></div>' +
+    '<div class="card"><div class="card-h"><h3>Devises</h3></div><div class="card-b"><div class="chips">' +
+    DB.currencies.map(function(c){ return '<span class="chip"><b>' + esc(c.code) + "</b>" + esc(c.name) + (c.code === base ? ' <span class="badge b-green">base</span>' : "") + "</span>"; }).join("") +
+    '</div><button class="btn btn-s btn-x" id="addCur" style="margin-top:10px">+ Ajouter une devise</button></div></div>' +
+    '<div class="card"><div class="card-h"><h3>Taux de change</h3><button class="btn btn-s btn-x" id="addRate">+ Nouveau taux</button></div><div class="card-b">' +
+    '<div class="tw"><table><thead><tr><th>Devise</th><th class="r">Taux → ' + esc(base) + '</th><th>Date</th><th>Historique</th></tr></thead><tbody>' + rateRows + "</tbody></table></div>" +
+    '<p class="note">Chaque saisie crée une entrée historique (jamais d\'écrasement) : les calculs rétroactifs utilisent le taux en vigueur à la date de l\'opération.</p></div></div>' +
+    '<div class="card"><div class="card-h"><h3>Sauvegarde &amp; restauration</h3></div><div class="card-b">' +
+    '<div class="row-actions" style="margin-bottom:10px"><button class="btn btn-p" id="btnBackup">⬇ Télécharger la sauvegarde JSON</button>' +
+    '<button class="btn btn-s" id="btnRestore">⬆ Restaurer une sauvegarde</button>' +
+    '<button class="btn btn-s" id="btnCsv">Export CSV transactions</button></div>' +
+    '<input type="file" id="restoreFile" accept=".json,application/json" style="display:none">' +
+    '<p class="note">La sauvegarde JSON contient <b>tout</b> : comptes, transactions, actifs, valorisations, passifs, paiements, objectifs, taux. Elle est restaurable sur n\'importe quel navigateur. La sauvegarde automatique locale a lieu à chaque modification ; téléchargez néanmoins un fichier JSON régulièrement — les données de localStorage seraient perdues si vous videz les données du navigateur.</p></div></div>' +
+    '<div class="card"><div class="card-h"><h3>Sauvegarde GitHub (token personnel)</h3></div><div class="card-b">' +
+    '<p class="note" style="margin-top:0">Envoie votre sauvegarde JSON complète dans un fichier de votre dépôt GitHub (API officielle). Créez un <b>token à accès fin</b> : GitHub → Settings → Developer settings → Personal access tokens → Fine-grained tokens, limité à <b>un dépôt privé dédié</b>, permission « Contents : Read and write ». Le token reste dans ce navigateur ; ne le partagez pas et révoquez-le en cas de doute.</p>' +
+    '<div class="frow">' +
+    fInput("ghToken", "Personal Access Token", "password", ghCfg.token, { placeholder: "github_pat_…" }) +
+    fInput("ghOwner", "Propriétaire (utilisateur ou organisation)", "text", ghCfg.owner, { placeholder: "votre-utilisateur" }) +
+    fInput("ghRepo", "Dépôt", "text", ghCfg.repo, { placeholder: "mes-finances" }) +
+    fInput("ghBranch", "Branche", "text", ghCfg.branch, { placeholder: "main" }) +
+    fInput("ghPath", "Chemin du fichier", "text", ghCfg.path, { placeholder: "pwm-backup.json" }) +
+    "</div>" +
+    '<label style="display:flex;align-items:center;gap:8px;font-size:.8rem;margin-bottom:8px"><input type="checkbox" id="f_ghAuto" style="width:auto"> Sauvegarde automatique vers GitHub (≈ 30 s après chaque modification, au maximum une fois toutes les 5 minutes)</label>' +
+    '<div class="row-actions" style="margin-bottom:8px">' +
+    '<button class="btn btn-s" id="ghTestBtn">Tester la connexion</button>' +
+    '<button class="btn btn-p" id="ghPushBtn">⬆ Envoyer vers GitHub</button>' +
+    '<button class="btn btn-s" id="ghRestoreBtn">⬇ Restaurer depuis GitHub</button>' +
+    "</div>" +
+    '<div id="ghStatus" class="note">Dernière sauvegarde GitHub : jamais.</div>' +
+    "</div></div>" +
+    '<div class="card"><div class="card-h"><h3>Historique local d\'instantanés</h3><button class="btn btn-s btn-x" id="histBtn">+ Instantané maintenant</button></div><div class="card-b">' +
+    '<div class="tw"><table><thead><tr><th>Date</th><th class="r">Taille</th><th></th></tr></thead><tbody>' + histRows + "</tbody></table></div>" +
+    '<p class="note">Les 5 derniers instantanés complets sont conservés dans ce navigateur ; un instantané automatique est créé chaque jour à la première saisie, et avant chaque restauration, démonstration ou remise à zéro.</p>' +
+    "</div></div>" +
+    '<div class="card"><div class="card-h"><h3>Données</h3></div><div class="card-b">' +
+    '<div class="row-actions"><button class="btn btn-s" id="btnDemo">Charger les données de démonstration</button><button class="btn btn-d" id="btnReset">Tout effacer</button></div>' +
+    '<p class="note">La démonstration remplace les données actuelles (téléchargez d\'abord une sauvegarde). Les données fictives sont marquées [Démo].</p></div></div>' +
+    '<div class="card"><div class="card-h"><h3>À propos</h3></div><div class="card-b">' +
+    '<p class="note" style="margin-top:0"><b>Personal Wealth Manager — édition personnelle.</b> Fichier HTML unique, sans serveur ni dépendance, un seul espace utilisateur (plus de compartiments Personnel/Trading/Consolidé). Règles comptables garanties : transferts neutres (jamais revenus/dépenses), remboursement de capital ≠ dépense de consommation, dépôts de trading ≠ gains, valorisations historisées, taux de change jamais inventés, aucun double comptage. Sauvegardes : locale automatique + instantanés + GitHub par token personnel.</p>' +
+    "</div></div>";
+  function fSelectStatic(id, options, value){
+    return '<select id="' + id + '">' + options.map(function(o){ return '<option value="' + esc(o.v) + '"' + (o.v === value ? " selected" : "") + ">" + esc(o.l) + "</option>"; }).join("") + "</select>";
+  }
+  document.getElementById("saveBase").onclick = function(){
+    var v = document.getElementById("baseCur").value;
+    if (!v) return;
+    DB.settings.baseCurrency = v;
+    saveDB(); rerender();
+    toast("Devise de consolidation : " + v);
+  };
+  document.getElementById("addCur").onclick = openCurrencyModal;
+  document.getElementById("addRate").onclick = openRateModal;
+  document.getElementById("btnBackup").onclick = exportBackup;
+  document.getElementById("btnRestore").onclick = function(){ document.getElementById("restoreFile").click(); };
+  document.getElementById("restoreFile").onchange = function(e){ if (e.target.files[0]) restoreBackup(e.target.files[0]); };
+  document.getElementById("btnCsv").onclick = function(){
+    var rows = [["id","date","type","libelle","montant","devise","taux","montant_base","categorie","statut","notes"]];
+    DB.transactions.forEach(function(t){
+      rows.push([t.id, t.date, t.type, t.label, t.amount, t.currency, t.rateApplied, t.amountBase, t.category || "", t.status, t.notes || ""]);
+    });
+    downloadCSV("pwm-transactions-" + todayISO() + ".csv", rows);
+  };
+  document.getElementById("btnDemo").onclick = loadDemo;
+  document.getElementById("btnReset").onclick = resetAll;
+  ["ghToken", "ghOwner", "ghRepo", "ghBranch", "ghPath"].forEach(function(id){
+    var el = document.getElementById("f_" + id);
+    if (el) el.onchange = function(){
+      ghCfg.token = document.getElementById("f_ghToken").value.trim();
+      ghCfg.owner = document.getElementById("f_ghOwner").value.trim();
+      ghCfg.repo = document.getElementById("f_ghRepo").value.trim();
+      ghCfg.branch = document.getElementById("f_ghBranch").value.trim() || "main";
+      ghCfg.path = document.getElementById("f_ghPath").value.trim() || "pwm-backup.json";
+      saveGhCfg();
+      toast("Configuration GitHub enregistrée dans ce navigateur.");
+    };
+  });
+  document.getElementById("ghTestBtn").onclick = function(){
+    toast("Test de connexion en cours…");
+    ghTest().then(function(r){
+      toast("Connexion OK : " + r.full_name + (r.permissions && r.permissions.push === true ? " (push autorisé)" : ""), "ok");
+    }).catch(function(e){ toast(String(e.message || e), "err"); });
+  };
+  document.getElementById("ghPushBtn").onclick = function(){
+    toast("Envoi vers GitHub en cours…");
+    ghPush("Sauvegarde manuelle PWM — " + new Date().toLocaleString("fr-FR"))
+      .then(function(res){ ghPushDone(res); toast("Sauvegarde envoyée sur GitHub ✓", "ok"); })
+      .catch(function(e){ ghPushFail(e); toast(String(e.message || e), "err"); });
+  };
+  document.getElementById("ghRestoreBtn").onclick = function(){
+    ghRestore().then(function(r){ if (r === "restaurée") toast("Sauvegarde GitHub restaurée ✓", "ok"); })
+      .catch(function(e){ toast(String(e.message || e), "err"); });
+  };
+  var ghAuto = document.getElementById("f_ghAuto");
+  ghAuto.checked = !!ghCfg.auto;
+  ghAuto.onchange = function(){ ghCfg.auto = ghAuto.checked; saveGhCfg(); toast(ghAuto.checked ? "Sauvegarde GitHub automatique activée." : "Sauvegarde GitHub automatique désactivée."); };
+  document.getElementById("histBtn").onclick = function(){
+    if (pushSnapshot()){ toast("Instantané local créé."); RENDER.settings(); }
+    else toast("Impossible de créer l'instantané (données trop volumineuses ?).", "err");
+  };
+  document.querySelectorAll("button[data-hist]").forEach(function(b){
+    b.onclick = function(){ restoreSnapshot(+b.dataset.hist); };
+  });
+  updateGhStatus();
+};
+
+function openRateModal(){
+  var base = DB.settings.baseCurrency;
+  var others = DB.currencies.filter(function(c){ return c.code !== base; });
+  if (!others.length){ toast("Ajoutez d'abord une autre devise.", "err"); return; }
+  var body = '<p class="note" style="margin-top:0">1 unité de la devise choisie = X ' + esc(base) + ". L'ancien taux reste dans l'historique pour les calculs rétroactifs.</p>" +
+    '<div class="frow">' +
+    fSelect("currency", "Devise", others.map(function(c){ return { v: c.code, l: c.code + " — " + c.name }; }), others[0].code, { required: true }) +
+    fInput("rate", "Taux (en " + esc(base) + " par 1 unité)", "number", "", { step: "any", required: true, placeholder: "Ex. 605" }) +
+    fInput("date", "Date d'application", "date", todayISO(), { required: true }) +
+    "</div>";
+  openModal("Nouveau taux de change", body);
+  modalFooter([
+    { label: "Annuler", variant: "s", onClick: closeModal },
+    { label: "Enregistrer", onClick: function(){
+      var currency = gv("currency"), rate = gn("rate");
+      if (!currency){ toast("Choisissez une devise.", "err"); return; }
+      if (!(rate > 0)){ toast("Taux invalide.", "err"); return; }
+      DB.rates.push({ id: uid(), currency: currency, rate: rate, date: gv("date") || todayISO() });
+      saveDB(); closeModal(); rerender();
+      toast("Taux " + currency + " enregistré (historique conservé).");
+    }}
+  ]);
+}
+
+function openCurrencyModal(){
+  var body = '<div class="frow">' +
+    fInput("code", "Code ISO", "text", "", { required: true, placeholder: "Ex. NGN" }) +
+    fInput("name", "Nom", "text", "", { required: true, placeholder: "Ex. Naira nigérian" }) +
+    fInput("symbol", "Symbole", "text", "", { placeholder: "Ex. ₦" }) +
+    fInput("decimals", "Décimales", "number", "2", { min: "0" }) +
+    "</div>";
+  openModal("Ajouter une devise", body);
+  modalFooter([
+    { label: "Annuler", variant: "s", onClick: closeModal },
+    { label: "Ajouter", onClick: function(){
+      var code = gv("code").toUpperCase();
+      if (!code || !gv("name")){ toast("Code et nom requis.", "err"); return; }
+      if (DB.currencies.some(function(c){ return c.code === code; })){ toast("Cette devise existe déjà.", "err"); return; }
+      DB.currencies.push({ code: code, name: gv("name"), symbol: gv("symbol") || code, decimals: Math.max(0, Math.min(4, gn("decimals") || 2)) });
+      saveDB(); closeModal(); rerender();
+      toast("Devise " + code + " ajoutée.");
+    }}
+  ]);
+}
+
+// ---------- Sauvegarde / restauration / démo / remise à zéro ----------
+function exportBackup(){
+  var payload = { app: "Personal Wealth Manager (web)", version: 1, exportedAt: new Date().toISOString(), data: DB };
+  download("pwm-sauvegarde-" + todayISO() + ".json", JSON.stringify(payload, null, 2), "application/json");
+  toast("Sauvegarde téléchargée — conservez-la hors de ce navigateur.");
+}
+function restoreBackup(file){
+  var reader = new FileReader();
+  reader.onload = function(){
+    var parsed;
+    try { parsed = JSON.parse(String(reader.result)); } catch (e){ toast("Fichier JSON invalide.", "err"); return; }
+    var d = parsed && parsed.data ? parsed.data : parsed;
+    if (!d || !d.settings || !Array.isArray(d.accounts)){ toast("Ce fichier n'est pas une sauvegarde PWM valide.", "err"); return; }
+    if (!confirm("Restaurer cette sauvegarde (" + d.accounts.length + " comptes, " + (d.transactions || []).length + " opérations) ?\n\nLes données actuelles de ce navigateur seront REMPLACÉES.")) return;
+    pushSnapshot();
+    DB = normalizeDB(d);
+    saveDB(); closeModal(); showPage("dashboard");
+    toast("Sauvegarde restaurée intégralement.");
+  };
+  reader.readAsText(file);
+}
+function loadDemo(){
+  if (!confirm("Charger les données de démonstration ?\n\nElles REMPLACENT les données actuelles. Téléchargez d'abord une sauvegarde si nécessaire.")) return;
+  pushSnapshot();
+  DB = makeDemoDB();
+  saveDB(); closeModal();
+  showPage("dashboard");
+  toast("Données de démonstration chargées (marquées [Démo]).");
+}
+function resetAll(){
+  if (!confirm("Effacer TOUTES les données de ce navigateur ?")) return;
+  if (!confirm("Confirmer une seconde fois : cette action est irréversible.")) return;
+  pushSnapshot();
+  DB = blankDB();
+  saveDB();
+  showPage("dashboard");
+  toast("Toutes les données ont été effacées.");
+}
+
+// ============================================================
+// DÉMARRAGE
+// ============================================================
+document.querySelectorAll("nav button").forEach(function(b){
+  b.onclick = function(){ showPage(b.dataset.page); };
+});
+DB = loadDB();
+if (!DB){ DB = blankDB(); saveDB(); }
+updateSaveInd(true);
+showPage("dashboard");
+</script>
+</body>
+</html>
