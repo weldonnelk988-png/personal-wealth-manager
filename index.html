@@ -245,7 +245,26 @@ function catLabel(type, value){
 }
 
 // ---------- Utilitaires monétaires ----------
-function roundMoney(x, d){ d = d == null ? 2 : d; var f = Math.pow(10, d); return Math.round((x + Number.EPSILON) * f) / f; }
+function roundMoney(x, d){
+  d = d == null || !isFinite(Number(d)) ? 2 : Math.max(0, Math.min(12, Math.floor(Number(d))));
+  if (!isFinite(x)) return x;
+  var numeric = Number(x);
+  var negative = numeric < 0;
+  var absolute = Math.abs(numeric);
+  if (typeof BigInt !== "function" || absolute >= 1e21){
+    var fallbackScale = Math.pow(10, d);
+    return Math.round((numeric + (numeric < 0 ? -1 : 1) * Number.EPSILON) * fallbackScale) / fallbackScale;
+  }
+  var fixed = absolute.toFixed(12).split(".");
+  var fraction = (fixed[1] || "").padEnd(12, "0");
+  var whole = BigInt(fixed[0] + fraction.slice(0, d).padEnd(d, "0"));
+  if (Number(fraction.charAt(d) || "0") >= 5) whole += BigInt(1);
+  var scale = BigInt(10) ** BigInt(d);
+  var integerPart = whole / scale;
+  var fractionalPart = d ? String(whole % scale).padStart(d, "0") : "";
+  var result = Number(String(integerPart) + (d ? "." + fractionalPart : ""));
+  return negative ? -result : result;
+}
 function safeDiv(a, b){ return (isFinite(a) && isFinite(b) && b !== 0) ? a / b : null; }
 function sumArr(a){ var s = 0; for (var i = 0; i < a.length; i++){ if (isFinite(a[i])) s += a[i]; } return s; }
 function toBase(amount, rate){ return (isFinite(amount) && isFinite(rate) && rate > 0) ? roundMoney(amount * rate, 2) : 0; }
@@ -254,21 +273,20 @@ function isNeutral(type){ return type === "TRANSFER" || type === "ADJUSTMENT"; }
 
 // ---------- Taux de change ----------
 // rate = nombre d'unités de la devise de base pour 1 unité de la devise.
-// findRate : dernier taux connu ≤ date ; repli sur le premier taux connu si demandé (signalé) ; sinon null (jamais inventé).
+// Retourne uniquement le dernier taux connu à la date demandée.
+// Aucun taux futur n'est utilisé pour valoriser une date passée (pas de look-ahead).
 function rateFor(currency, atTs, fallback){
   if (!DB) return null;
   if (currency === DB.settings.baseCurrency) return 1;
-  var best = null, earliest = null;
+  var best = null;
   for (var i = 0; i < DB.rates.length; i++){
     var r = DB.rates[i];
     if (r.currency !== currency) continue;
     var ts = Date.parse(r.date);
-    if (earliest === null || ts < Date.parse(earliest.date)) earliest = r;
+    if (!isFinite(ts) || !isFinite(Number(r.rate)) || Number(r.rate) <= 0) continue;
     if (ts <= atTs && (best === null || ts > Date.parse(best.date))) best = r;
   }
-  if (best) return best.rate;
-  if (fallback && earliest) return earliest.rate;
-  return null;
+  return best ? Number(best.rate) : null;
 }
 function latestRateOf(currency){
   if (currency === DB.settings.baseCurrency) return 1;
@@ -284,17 +302,40 @@ function latestRateOf(currency){
 // ---------- Comptes de trading (par type de compte ; plus aucun système d'espaces) ----------
 function isTradingAccount(a){ return !!a && (a.type === "TRADING" || a.type === "BROKERAGE" || a.type === "INVESTMENT"); }
 
+// Retourne le dernier instantané d'equity connu à la date demandée.
+// À défaut, le solde de caisse sert de proxy ; une equity actuelle ne doit jamais
+// être réinjectée rétroactivement dans un bilan historique.
+function equitySnapshotAt(account, atTs){
+  var hist = (account && account.equityHistory || []).slice().sort(function(a,b){
+    return Date.parse(a.date) - Date.parse(b.date);
+  });
+  var best = null;
+  for (var i = 0; i < hist.length; i++){
+    var ts = Date.parse(hist[i].date);
+    if (isFinite(ts) && ts <= atTs && (best === null || ts >= Date.parse(best.date))) best = hist[i];
+  }
+  return best;
+}
+function equityAt(account, atTs){
+  var snapshot = equitySnapshotAt(account, atTs);
+  return snapshot ? Number(snapshot.equity) : balanceOf(account.id, atTs);
+}
+
 // ---------- Moteur de soldes ----------
 // INCOME +, EXPENSE −, TRANSFER − au départ / + à l'arrivée, ADJUSTMENT ± (documenté),
 // paiements de passif − (capital + intérêts + frais). Seules les opérations CONFIRMED affectent le solde.
 function balanceOf(accountId, atTs){
   var acc = DB.accounts.find(function(a){ return a.id === accountId; });
   if (!acc) return 0;
+  // Un compte ne contribue pas au patrimoine avant sa date de création.
+  var createdTs = Date.parse(acc.createdAt);
+  if (isFinite(createdTs) && atTs < createdTs) return 0;
   var bal = acc.initialBalance || 0;
   for (var i = 0; i < DB.transactions.length; i++){
     var t = DB.transactions[i];
     if (t.status !== "CONFIRMED") continue;
-    if (Date.parse(t.date) > atTs) continue;
+    var transactionTs = Date.parse(t.date);
+    if (!isFinite(transactionTs) || transactionTs > atTs) continue;
     if (t.type === "TRANSFER"){
       if (t.accountId === accountId) bal -= t.amount;
       if (t.toAccountId === accountId) bal += (t.toAmount != null ? t.toAmount : t.amount);
@@ -307,7 +348,8 @@ function balanceOf(accountId, atTs){
   for (var j = 0; j < DB.payments.length; j++){
     var p = DB.payments[j];
     if (p.accountId !== accountId) continue;
-    if (Date.parse(p.date) > atTs) continue;
+    var paymentTs = Date.parse(p.date);
+    if (!isFinite(paymentTs) || paymentTs > atTs) continue;
     bal -= (p.capital + p.interest + p.fees);
   }
   return roundMoney(bal, 2);
@@ -316,32 +358,84 @@ function balanceOf(accountId, atTs){
 function liabilityRemaining(liabilityId, atTs){
   var l = DB.liabilities.find(function(x){ return x.id === liabilityId; });
   if (!l) return 0;
+  // Une dette n'existe pas dans le bilan avant sa date de prise d'effet.
+  var startTs = Date.parse(l.startDate);
+  if (isFinite(startTs) && atTs < startTs) return 0;
   var paid = 0;
   for (var i = 0; i < DB.payments.length; i++){
     var p = DB.payments[i];
-    if (p.liabilityId === liabilityId && Date.parse(p.date) <= atTs) paid += p.capital;
+    var paymentTs = Date.parse(p.date);
+    if (p.liabilityId === liabilityId && isFinite(paymentTs) && paymentTs <= atTs) paid += p.capital;
   }
   return roundMoney(Math.max(0, l.initialAmount - paid), 2);
 }
 
+function validateDebtPayment(liability, payment){
+  if (!liability || liability.status !== "ACTIVE") return "Ce passif n'est pas actif.";
+  var amounts = [payment.capital, payment.interest, payment.fees];
+  if (!amounts.every(function(v){ return isFinite(Number(v)) && Number(v) >= 0; }))
+    return "Capital, intérêts et frais doivent être des montants positifs ou nuls.";
+  var total = Number(payment.capital) + Number(payment.interest) + Number(payment.fees);
+  if (!isFinite(total) || total <= 0) return "Le paiement doit comprendre au moins un montant valide.";
+  var paymentTs = Date.parse(payment.date);
+  if (!isFinite(paymentTs)) return "Date de paiement invalide.";
+  var startTs = Date.parse(liability.startDate);
+  if (isFinite(startTs) && paymentTs < startTs) return "La date du paiement précède la date de début du passif.";
+  var remaining = liabilityRemaining(liability.id, paymentTs);
+  if (Number(payment.capital) > remaining + 0.005)
+    return "Le capital remboursé dépasse le capital restant dû (" + fmtMoney(remaining, liability.currency) + ").";
+  if (rateFor(liability.currency, paymentTs, false) == null)
+    return "Aucun taux connu pour " + liability.currency + " à cette date. Ajoutez un taux historique dans Paramètres → Taux.";
+  if (payment.accountId){
+    var account = DB.accounts.find(function(a){ return a.id === payment.accountId; });
+    if (!account || account.status !== "ACTIVE" || account.currency !== liability.currency)
+      return "Choisissez un compte actif dans la devise du passif (" + liability.currency + ").";
+  }
+  return null;
+}
+
+function validateTransfer(from, to, amount, toAmount, date){
+  if (!from || !to || from.status !== "ACTIVE" || to.status !== "ACTIVE")
+    return "Choisissez deux comptes actifs.";
+  if (from.id === to.id) return "Les comptes doivent être différents.";
+  if (!isFinite(Number(amount)) || Number(amount) <= 0) return "Montant débité invalide.";
+  var transferTs = Date.parse(date);
+  if (!isFinite(transferTs)) return "Date de transfert invalide.";
+  if (from.currency !== to.currency && (!isFinite(Number(toAmount)) || Number(toAmount) <= 0))
+    return "Saisissez un montant crédité valide pour la conversion entre devises.";
+  if (rateFor(from.currency, transferTs, false) == null)
+    return "Aucun taux connu pour " + from.currency + ". Ajoutez-le dans Paramètres → Taux.";
+  return null;
+}
+
 // ---------- Valorisation d'actifs (historique, jamais écrasé) ----------
 function assetValueAt(assetId, atTs){
+  var asset = DB.assets.find(function(a){ return a.id === assetId; });
+  if (!asset) return null;
+  // Un actif ne doit pas être comptabilisé avant son acquisition.
+  var acquiredTs = Date.parse(asset.acquisitionDate || asset.createdAt);
+  if (isFinite(acquiredTs) && atTs < acquiredTs) return null;
   var best = null;
   for (var i = 0; i < DB.valuations.length; i++){
     var v = DB.valuations[i];
     if (v.assetId !== assetId) continue;
     var ts = Date.parse(v.date);
-    if (ts <= atTs && (best === null || ts > Date.parse(best.date))) best = v;
+    if (isFinite(ts) && ts <= atTs && (best === null || ts > Date.parse(best.date))) best = v;
   }
   return best;
 }
 function assetCost(a){ return roundMoney((a.purchasePrice || 0) + (a.fees || 0), 2); }
 
-function excludedAssetIds(){
+function excludedAssetIds(atTs){
   var out = {};
   for (var i = 0; i < DB.accounts.length; i++){
     var a = DB.accounts[i];
-    if (!isTradingAccount(a) || a.equity == null) continue;
+    if (!isTradingAccount(a)) continue;
+    // En historique, exclure les actifs rattachés uniquement si une equity
+    // horodatée les intègre déjà à cette date.
+    if (atTs != null){
+      if (!equitySnapshotAt(a, atTs)) continue;
+    } else if (a.equity == null) continue;
     for (var j = 0; j < DB.assets.length; j++){
       var as = DB.assets[j];
       if (as.accountId === a.id && as.status === "ACTIVE") out[as.id] = true;
@@ -357,7 +451,7 @@ function statsAt(atTs){
   var warnings = [];
   var cashPersonal = 0, cashAll = 0, tradingValue = 0, assetsValue = 0, liabilities = 0;
   var missingVal = [];
-  var excluded = excludedAssetIds();
+  var excluded = excludedAssetIds(atTs);
   var warnedExcluded = {};
 
   for (var i = 0; i < DB.accounts.length; i++){
@@ -373,7 +467,7 @@ function statsAt(atTs){
   for (var i2 = 0; i2 < DB.accounts.length; i2++){
     var a2 = DB.accounts[i2];
     if (a2.status !== "ACTIVE" || !isTradingAccount(a2)) continue;
-    var eq = (a2.equity != null) ? a2.equity : balanceOf(a2.id, atTs);
+    var eq = equityAt(a2, atTs);
     var r2 = rateFor(a2.currency, atTs, true);
     if (r2 == null){ warnings.push("Taux " + a2.currency + " manquant : compte trading « " + a2.name + " » exclu."); continue; }
     tradingValue += toBase(eq, r2);
@@ -390,10 +484,15 @@ function statsAt(atTs){
       continue;
     }
     var v = assetValueAt(as.id, atTs);
+    if (!v){
+      var acquired = Date.parse(as.acquisitionDate || as.createdAt);
+      if (isFinite(acquired) && atTs < acquired) continue;
+    }
     var amount, cur, dateISO, missing = false;
     if (v){ amount = v.value; cur = v.currency || as.currency; dateISO = v.date; }
     else { amount = assetCost(as); cur = as.currency; dateISO = as.acquisitionDate || as.createdAt || "2000-01-01"; missing = true; }
-    var r3 = rateFor(cur, Date.parse(dateISO), true);
+    // La valeur est convertie au taux disponible à la date du bilan.
+    var r3 = rateFor(cur, atTs, false);
     if (r3 == null){ warnings.push("Taux " + cur + " manquant : actif « " + as.name + " » exclu des totaux."); continue; }
     if (missing) missingVal.push(as.name);
     assetsValue += toBase(amount, r3);
@@ -403,7 +502,8 @@ function statsAt(atTs){
     var l = DB.liabilities[i4];
     if (l.status !== "ACTIVE") continue;
     var rem = liabilityRemaining(l.id, atTs);
-    var r4 = rateFor(l.currency, Date.parse(l.startDate || "2000-01-01"), true);
+    // La dette restante est convertie au taux disponible à la date du bilan.
+    var r4 = rateFor(l.currency, atTs, false);
     if (r4 == null){ warnings.push("Taux " + l.currency + " manquant : dette « " + l.name + " » exclue."); continue; }
     liabilities += toBase(rem, r4);
   }
@@ -431,7 +531,7 @@ function flowsBetween(fromTs, toTs){
   for (var i = 0; i < DB.transactions.length; i++){
     var t = DB.transactions[i];
     var ts = Date.parse(t.date);
-    if (ts < fromTs || ts > toTs) continue;
+    if (!isFinite(ts) || ts < fromTs || ts > toTs) continue;
     if (t.status !== "CONFIRMED"){
       if (t.status === "EXPECTED" && t.type === "INCOME"){
         var rr = rateFor(t.currency, ts, true);
@@ -458,7 +558,7 @@ function flowsBetween(fromTs, toTs){
   for (var j = 0; j < DB.payments.length; j++){
     var p = DB.payments[j];
     var pts = Date.parse(p.date);
-    if (pts < fromTs || pts > toTs) continue;
+    if (!isFinite(pts) || pts < fromTs || pts > toTs) continue;
     var l = DB.liabilities.find(function(x){ return x.id === p.liabilityId; });
     if (!l) continue;
     var total = p.capital + p.interest + p.fees;
@@ -512,7 +612,9 @@ function monthlySeries(fromTs, toTs){
   var labels = [], netWorth = [], liquidity = [], investments = [], income = [], expenses = [];
   var base = DB.settings.baseCurrency;
   for (var i = 0; i < buckets.length; i++){
-    var endTs = monthEndTs(buckets[i]);
+    // Le mois en cours doit être arrêté à aujourd'hui : ne jamais valoriser
+    // un bilan mensuel à une date future à partir de données déjà saisies.
+    var endTs = Math.min(monthEndTs(buckets[i]), toTs);
     var st = statsAt(endTs);
     labels.push(monthKeyOf(buckets[i]));
     netWorth.push(st.netWorth);
@@ -526,20 +628,20 @@ function monthlySeries(fromTs, toTs){
     }
     liquidity.push(roundMoney(cash, 2));
     var inv = 0;
-    var excluded = excludedAssetIds();
+    var excluded = excludedAssetIds(endTs);
     for (var k = 0; k < DB.accounts.length; k++){
       var ta = DB.accounts[k];
       if (ta.status !== "ACTIVE" || !isTradingAccount(ta)) continue;
       var rt = rateFor(ta.currency, endTs, true);
       if (rt == null) continue;
-      inv += toBase(ta.equity != null ? ta.equity : balanceOf(ta.id, endTs), rt);
+      inv += toBase(equityAt(ta, endTs), rt);
     }
     for (var m = 0; m < DB.assets.length; m++){
       var as = DB.assets[m];
       if (as.status !== "ACTIVE" || as.role !== "INVESTMENT" || excluded[as.id]) continue;
       var v = assetValueAt(as.id, endTs);
       if (!v) continue;
-      var rv = rateFor(v.currency || as.currency, Date.parse(v.date), true);
+      var rv = rateFor(v.currency || as.currency, endTs, false);
       if (rv == null) continue;
       inv += toBase(v.value, rv);
     }
@@ -554,6 +656,9 @@ function monthlySeries(fromTs, toTs){
 // ---------- Performance : XIRR et TWR ----------
 function xirr(flows){
   if (!flows || flows.length < 2) return null;
+  for (var v = 0; v < flows.length; v++){
+    if (!isFinite(Date.parse(flows[v].date)) || !isFinite(Number(flows[v].amount))) return null;
+  }
   var fs = flows.slice().sort(function(a,b){ return Date.parse(a.date) - Date.parse(b.date); });
   var t0 = Date.parse(fs[0].date);
   var hasPos = false, hasNeg = false;
@@ -590,23 +695,32 @@ function xirr(flows){
 
 function twr(points){
   if (!points || points.length < 2) return null;
+  for (var v = 0; v < points.length; v++){
+    if (!isFinite(Date.parse(points[v].date)) || !isFinite(Number(points[v].value))) return null;
+    if (points[v].flow != null && !isFinite(Number(points[v].flow))) return null;
+  }
   var ps = points.slice().sort(function(a,b){ return Date.parse(a.date) - Date.parse(b.date); });
-  var product = 1, ok = false;
+  var product = 1;
   for (var i = 1; i < ps.length; i++){
     var prev = ps[i-1], cur = ps[i];
-    if (!(prev.value > 0)) continue;
-    var r = (cur.value - cur.flow - prev.value) / prev.value;
-    if (!isFinite(r)) continue;
+    if (!(Number(prev.value) > 0)) return null;
+    var flow = cur.flow == null ? 0 : Number(cur.flow);
+    var r = (Number(cur.value) - flow - Number(prev.value)) / Number(prev.value);
+    if (!isFinite(r) || 1 + r < 0) return null;
     product *= (1 + r);
-    ok = true;
+    if (!isFinite(product)) return null;
   }
-  return ok ? product - 1 : null;
+  return product - 1;
 }
 
 // ---------- Performance des comptes de trading ----------
 function tradingPerf(){
   var now = Date.now();
-  return DB.accounts.filter(function(a){ return isTradingAccount(a) && a.status === "ACTIVE"; }).map(function(a){
+  return DB.accounts.filter(function(a){
+    if (!isTradingAccount(a) || a.status !== "ACTIVE") return false;
+    var created = Date.parse(a.createdAt);
+    return !isFinite(created) || created <= now;
+  }).map(function(a){
     var deposits = 0, withdrawals = 0;
     var flowsArr = [];
     if (a.initialBalance > 0){
@@ -615,18 +729,34 @@ function tradingPerf(){
     }
     for (var i = 0; i < DB.transactions.length; i++){
       var t = DB.transactions[i];
-      if (t.type !== "TRANSFER" || t.status !== "CONFIRMED" || Date.parse(t.date) > now) continue;
-      if (t.toAccountId === a.id){ var amt = t.toAmount != null ? t.toAmount : t.amount; deposits += amt; flowsArr.push({ date: t.date, amount: -amt }); }
-      if (t.accountId === a.id){ withdrawals += t.amount; flowsArr.push({ date: t.date, amount: t.amount }); }
+      var transferTs = Date.parse(t.date);
+      if (t.type !== "TRANSFER" || t.status !== "CONFIRMED" || !isFinite(transferTs) || transferTs > now) continue;
+      if (t.toAccountId === a.id){
+        var amt = t.toAmount != null ? Number(t.toAmount) : Number(t.amount);
+        if (!isFinite(amt) || amt <= 0) continue;
+        deposits += amt;
+        flowsArr.push({ date: t.date, amount: -amt });
+      }
+      if (t.accountId === a.id){
+        var outAmt = Number(t.amount);
+        if (!isFinite(outAmt) || outAmt <= 0) continue;
+        withdrawals += outAmt;
+        flowsArr.push({ date: t.date, amount: outAmt });
+      }
     }
     var gains = 0, losses = 0, fees = 0;
     for (var j = 0; j < DB.transactions.length; j++){
       var tx = DB.transactions[j];
-      if (tx.accountId !== a.id || tx.status !== "CONFIRMED") continue;
-      if (tx.type === "INCOME") gains += tx.amount;
+      var txTs = Date.parse(tx.date);
+      // Les opérations futures ou mal datées ne doivent jamais entrer dans
+      // les statistiques de performance à la date courante.
+      if (tx.accountId !== a.id || tx.status !== "CONFIRMED" || !isFinite(txTs) || txTs > now) continue;
+      var txAmount = Number(tx.amount);
+      if (!isFinite(txAmount) || txAmount <= 0) continue;
+      if (tx.type === "INCOME") gains += txAmount;
       else if (tx.type === "EXPENSE"){
-        if (tx.category === "TRADING_LOSS") losses += tx.amount;
-        if (FEE_CATEGORIES[tx.category]) fees += tx.amount;
+        if (tx.category === "TRADING_LOSS") losses += txAmount;
+        if (FEE_CATEGORIES[tx.category]) fees += txAmount;
       }
     }
     var balance = balanceOf(a.id, now);
@@ -684,7 +814,9 @@ function assetAnalytics(){
     var value = v ? v.value : null, valueDate = v ? v.date : null;
     var valueBase = null;
     if (v){
-      var r = rateFor(v.currency || a.currency, Date.parse(v.date), true);
+      // Valeur patrimoniale actuelle : convertir au taux disponible à la date du rapport,
+      // et non au taux historique de la dernière valorisation.
+      var r = rateFor(v.currency || a.currency, now, false);
       if (r != null) valueBase = toBase(v.value, r);
     }
     var gain = value != null ? roundMoney(value - cost, 2) : null;
@@ -775,11 +907,17 @@ function objectiveProgress(o){
   else if (o.type === "EMERGENCY_FUND") current = st.cashAll;
   else if (o.type === "DEBT_REDUCTION"){ current = st.totalLiabilities; dir = "down"; }
   else if (o.type === "INVESTMENT_CAPITAL") current = st.tradingValue;
-  var range = o.targetAmount - o.startAmount;
+  // Pour une dette, la cible est normalement inférieure au montant initial.
+  // La progression est (dette initiale - dette actuelle) / (dette initiale - cible).
+  var denominator = dir === "down"
+    ? o.startAmount - o.targetAmount
+    : o.targetAmount - o.startAmount;
+  var numerator = dir === "down"
+    ? o.startAmount - current
+    : current - o.startAmount;
   var pct = null;
-  if (range !== 0){
-    var raw = dir === "up" ? (current - o.startAmount) / range : (o.startAmount - current) / range;
-    pct = roundMoney(Math.max(0, Math.min(100, raw * 100)), 1);
+  if (isFinite(denominator) && denominator > 0 && isFinite(numerator)){
+    pct = roundMoney(Math.max(0, Math.min(100, numerator / denominator * 100)), 1);
   }
   return {
     current: roundMoney(current, 2), pct: pct,
@@ -808,8 +946,8 @@ function allocationData(){
     if (as.status !== "ACTIVE" || excluded[as.id]) continue;
     var v = assetValueAt(as.id, now);
     var amount = v ? v.value : assetCost(as);
-    var dateISO = v ? v.date : (as.acquisitionDate || as.createdAt || "2000-01-01");
-    var rv = rateFor(v ? (v.currency || as.currency) : as.currency, Date.parse(dateISO), true);
+    // La répartition actuelle convertit la valeur retenue au taux courant disponible.
+    var rv = rateFor(v ? (v.currency || as.currency) : as.currency, now, false);
     if (rv == null) continue;
     var key = labelOf(ASSET_CATEGORIES, as.category);
     out[key] = roundMoney((out[key] || 0) + toBase(amount, rv), 2);
@@ -961,6 +1099,8 @@ if (typeof document === "undefined" && typeof globalThis !== "undefined"){
     monthlySeries: monthlySeries, tradingPerf: tradingPerf, assetAnalytics: assetAnalytics,
     liabilityInfo: liabilityInfo, amortizationOf: amortizationOf, objectiveProgress: objectiveProgress,
     allocationData: allocationData, reportMonthly: reportMonthly, reportAnnual: reportAnnual,
+    validateDebtPayment: validateDebtPayment, validateTransfer: validateTransfer,
+    currencyDecimals: currencyDecimals, fmtMoney: fmtMoney,
     blankDB: blankDB, makeDemoDB: makeDemoDB, toMonthly: toMonthly, roundMoney: roundMoney
   };
 }
@@ -970,7 +1110,30 @@ if (typeof document === "undefined" && typeof globalThis !== "undefined"){
 // PERSISTANCE LOCALE (localStorage) — les données restent dans le navigateur
 // ============================================================
 var LS_KEY = "pwm-web-v1";
+var LS_RECOVERY_KEY = "pwm-corrupt-recovery-v1";
+var DB_LOAD_WARNING = null;
+function validateBackupData(d){
+  if (!d || typeof d !== "object" || Array.isArray(d)) return "Structure de sauvegarde absente ou invalide.";
+  if (!d.settings || typeof d.settings !== "object" || typeof d.settings.baseCurrency !== "string" || !d.settings.baseCurrency.trim())
+    return "Paramètres de devise de consolidation absents ou invalides.";
+  if (!Array.isArray(d.accounts)) return "La liste des comptes est absente ou invalide.";
+  var keys = ["currencies","rates","accounts","transactions","assets","valuations","liabilities","payments","objectives"];
+  for (var i = 0; i < keys.length; i++){
+    var key = keys[i];
+    if (d[key] != null && !Array.isArray(d[key])) return "La rubrique « " + key + " » n'est pas une liste valide.";
+    if (Array.isArray(d[key])){
+      for (var j = 0; j < d[key].length; j++){
+        var item = d[key][j];
+        if (!item || typeof item !== "object" || Array.isArray(item))
+          return "Une entrée de la rubrique « " + key + " » est invalide (ligne " + (j + 1) + ").";
+      }
+    }
+  }
+  return null;
+}
 function normalizeDB(d){
+  var validationError = validateBackupData(d);
+  if (validationError) throw new Error(validationError);
   var b = blankDB();
   var out = Object.assign({}, b, d);
   out.settings = Object.assign({}, b.settings, d.settings || {});
@@ -985,12 +1148,23 @@ function loadDB(){
     var raw = localStorage.getItem(LS_KEY);
     if (!raw) return null;
     var d = JSON.parse(raw);
-    if (!d || !d.settings || !Array.isArray(d.accounts)) return null;
+    var validationError = validateBackupData(d);
+    if (validationError) throw new Error(validationError);
     return normalizeDB(d);
-  } catch (e){ return null; }
+  } catch (e){
+    DB_LOAD_WARNING = String(e && e.message || e);
+    try {
+      var damaged = localStorage.getItem(LS_KEY);
+      if (damaged && !localStorage.getItem(LS_RECOVERY_KEY)) localStorage.setItem(LS_RECOVERY_KEY, damaged);
+    } catch (copyError){}
+    return null;
+  }
 }
 function saveDB(){
   if (!DB) return;
+  // En cas de corruption détectée au démarrage, ne jamais écraser la source
+  // locale avant une restauration explicite ou une remise à zéro confirmée.
+  if (DB_LOAD_WARNING){ updateSaveInd(false); return; }
   DB.savedAt = new Date().toISOString();
   try { localStorage.setItem(LS_KEY, JSON.stringify(DB)); updateSaveInd(true); }
   catch (e){ updateSaveInd(false); }
@@ -1114,10 +1288,13 @@ function ghRestore(){
     var parsed;
     try { parsed = JSON.parse(text); } catch (e){ throw new Error("Le fichier distant n'est pas un JSON valide."); }
     var d = parsed && parsed.data ? parsed.data : parsed;
-    if (!d || !d.settings || !Array.isArray(d.accounts)) throw new Error("Le fichier distant n'est pas une sauvegarde PWM valide.");
+    var validationError = validateBackupData(d);
+    if (validationError) throw new Error("Sauvegarde GitHub invalide : " + validationError);
+    d = normalizeDB(d);
     if (!confirm("Restaurer la sauvegarde GitHub (" + d.accounts.length + " comptes, " + (d.transactions || []).length + " opérations) ?\n\nLes données locales actuelles seront REMPLACÉES (un instantané local sera créé avant).")) return "annulé";
     pushSnapshot();
-    DB = normalizeDB(d);
+    DB = d;
+    DB_LOAD_WARNING = null;
     saveDB(); showPage("dashboard");
     return "restaurée";
   });
@@ -1151,8 +1328,18 @@ function esc(s){
     return { "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c];
   });
 }
+function currencyDecimals(currency){
+  var list = DB && DB.currencies && DB.currencies.length ? DB.currencies : DEFAULT_CURRENCIES;
+  for (var i = 0; i < list.length; i++){
+    if (list[i].code === currency){
+      var configured = Number(list[i].decimals);
+      return isFinite(configured) ? Math.max(0, Math.min(12, Math.floor(configured))) : 2;
+    }
+  }
+  return 2;
+}
 function fmtMoney(v, currency, d){
-  d = d == null ? 2 : d;
+  d = d == null ? currencyDecimals(currency) : d;
   if (v == null || !isFinite(v)) return "—";
   var sign = v < 0 ? "−" : "";
   return sign + Math.abs(v).toLocaleString("fr-FR", { minimumFractionDigits: d, maximumFractionDigits: d }) + (currency ? " " + currency : "");
@@ -1498,18 +1685,16 @@ function openTransferModal(){
     { label: "Enregistrer le transfert", onClick: function(){
       var from = accountById(gv("from")), to = accountById(gv("to"));
       var amount = gn("amount"), toAmount = gv("toAmount") ? gn("toAmount") : null;
-      if (!from || !to){ toast("Choisissez les deux comptes.", "err"); return; }
-      if (from.id === to.id){ toast("Les comptes doivent être différents.", "err"); return; }
-      if (!(amount > 0)){ toast("Montant invalide.", "err"); return; }
-      if (from.currency !== to.currency && !(toAmount > 0)){ toast("Saisissez le montant crédité (devises différentes).", "err"); return; }
+      var transferDate = gv("date") || todayISO();
+      var validation = validateTransfer(from, to, amount, toAmount, transferDate);
+      if (validation){ toast(validation, "err"); return; }
       var rate = from.currency === to.currency ? 1 : toAmount / amount;
-      var baseRate = rateFor(from.currency, Date.parse(gv("date")), false);
-      if (baseRate == null){ toast("Aucun taux connu pour " + from.currency + ". Ajoutez-le dans Paramètres → Taux.", "err"); return; }
+      var baseRate = rateFor(from.currency, Date.parse(transferDate), false);
       DB.transactions.push({
         id: uid(), type: "TRANSFER",
         label: gv("notes") ? "[Transfert] " + gv("notes").slice(0, 60) : "Transfert " + from.name + " → " + to.name,
         amount: amount, currency: from.currency, rateApplied: rate, amountBase: toBase(amount, baseRate),
-        date: gv("date"), category: null, subCategory: null, frequency: "ONE_TIME", status: "CONFIRMED",
+        date: transferDate, category: null, subCategory: null, frequency: "ONE_TIME", status: "CONFIRMED",
         accountId: from.id, toAccountId: to.id, toAmount: (from.currency === to.currency ? null : toAmount), toCurrency: (from.currency === to.currency ? null : to.currency),
         assetId: null, notes: gv("notes") || null
       });
@@ -2208,13 +2393,11 @@ function openPaymentModal(l){
     { label: "Annuler", variant: "s", onClick: closeModal },
     { label: "Enregistrer le paiement", onClick: function(){
       var capital = gn("capital") || 0, interest = gn("interest") || 0, fees = gn("fees") || 0;
-      var total = capital + interest + fees;
-      if (total <= 0){ toast("Le paiement doit comprendre au moins un montant.", "err"); return; }
       var date = gv("date") || todayISO();
-      var rate = rateFor(l.currency, Date.parse(date), false);
-      if (rate == null){ toast("Aucun taux connu pour " + l.currency + ". Ajoutez-le dans Paramètres → Taux.", "err"); return; }
       var accountId = gv("accountId") || null;
-      if (accountId && accountById(accountId).currency !== l.currency){ toast("Le compte doit être dans la devise du passif (" + l.currency + ").", "err"); return; }
+      var validation = validateDebtPayment(l, { capital: capital, interest: interest, fees: fees, date: date, accountId: accountId });
+      if (validation){ toast(validation, "err"); return; }
+      var rate = rateFor(l.currency, Date.parse(date), false);
       DB.payments.push({ id: uid(), liabilityId: l.id, date: date, capital: capital, interest: interest, fees: fees, currency: l.currency, rateApplied: rate, accountId: accountId, notes: gv("notes") || null });
       if (liabilityRemaining(l.id, Date.now()) <= 0.005){
         l.status = "CLOSED";
@@ -2674,7 +2857,9 @@ function openCurrencyModal(){
       var code = gv("code").toUpperCase();
       if (!code || !gv("name")){ toast("Code et nom requis.", "err"); return; }
       if (DB.currencies.some(function(c){ return c.code === code; })){ toast("Cette devise existe déjà.", "err"); return; }
-      DB.currencies.push({ code: code, name: gv("name"), symbol: gv("symbol") || code, decimals: Math.max(0, Math.min(4, gn("decimals") || 2)) });
+      var decimals = gn("decimals");
+      if (!isFinite(decimals)) decimals = 2;
+      DB.currencies.push({ code: code, name: gv("name"), symbol: gv("symbol") || code, decimals: Math.max(0, Math.min(4, Math.floor(decimals))) });
       saveDB(); closeModal(); rerender();
       toast("Devise " + code + " ajoutée.");
     }}
@@ -2688,15 +2873,21 @@ function exportBackup(){
   toast("Sauvegarde téléchargée — conservez-la hors de ce navigateur.");
 }
 function restoreBackup(file){
+  if (!file) return;
+  if (file.size > 20 * 1024 * 1024){ toast("Fichier trop volumineux : limite de 20 Mo.", "err"); return; }
   var reader = new FileReader();
+  reader.onerror = function(){ toast("Impossible de lire le fichier de sauvegarde.", "err"); };
   reader.onload = function(){
     var parsed;
     try { parsed = JSON.parse(String(reader.result)); } catch (e){ toast("Fichier JSON invalide.", "err"); return; }
     var d = parsed && parsed.data ? parsed.data : parsed;
-    if (!d || !d.settings || !Array.isArray(d.accounts)){ toast("Ce fichier n'est pas une sauvegarde PWM valide.", "err"); return; }
+    var validationError = validateBackupData(d);
+    if (validationError){ toast("Sauvegarde refusée : " + validationError, "err"); return; }
+    try { d = normalizeDB(d); } catch (validationException){ toast("Sauvegarde refusée : " + validationException.message, "err"); return; }
     if (!confirm("Restaurer cette sauvegarde (" + d.accounts.length + " comptes, " + (d.transactions || []).length + " opérations) ?\n\nLes données actuelles de ce navigateur seront REMPLACÉES.")) return;
     pushSnapshot();
-    DB = normalizeDB(d);
+    DB = d;
+    DB_LOAD_WARNING = null;
     saveDB(); closeModal(); showPage("dashboard");
     toast("Sauvegarde restaurée intégralement.");
   };
@@ -2706,6 +2897,7 @@ function loadDemo(){
   if (!confirm("Charger les données de démonstration ?\n\nElles REMPLACENT les données actuelles. Téléchargez d'abord une sauvegarde si nécessaire.")) return;
   pushSnapshot();
   DB = makeDemoDB();
+  DB_LOAD_WARNING = null;
   saveDB(); closeModal();
   showPage("dashboard");
   toast("Données de démonstration chargées (marquées [Démo]).");
@@ -2715,6 +2907,7 @@ function resetAll(){
   if (!confirm("Confirmer une seconde fois : cette action est irréversible.")) return;
   pushSnapshot();
   DB = blankDB();
+  DB_LOAD_WARNING = null;
   saveDB();
   showPage("dashboard");
   toast("Toutes les données ont été effacées.");
@@ -2727,9 +2920,13 @@ document.querySelectorAll("nav button").forEach(function(b){
   b.onclick = function(){ showPage(b.dataset.page); };
 });
 DB = loadDB();
-if (!DB){ DB = blankDB(); saveDB(); }
-updateSaveInd(true);
+if (!DB){
+  DB = blankDB();
+  if (!DB_LOAD_WARNING) saveDB();
+}
+updateSaveInd(!DB_LOAD_WARNING);
 showPage("dashboard");
+if (DB_LOAD_WARNING) toast("Les données locales existantes semblent endommagées. Une copie de récupération a été conservée dans ce navigateur. Restaurez une sauvegarde JSON avant toute nouvelle saisie. Détail : " + DB_LOAD_WARNING, "err");
 </script>
 </body>
 </html>
